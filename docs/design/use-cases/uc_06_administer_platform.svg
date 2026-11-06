@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1330 960" width="1330" height="960" font-family="Helvetica, Arial, 'Liberation Sans', sans-serif">
+<defs>
+<marker id="open" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="11" markerHeight="11" orient="auto"><path d="M1,1 L11,6 L1,11" fill="none" stroke="#333" stroke-width="1.4"/></marker>
+<marker id="tri" viewBox="0 0 16 16" refX="15" refY="8" markerWidth="16" markerHeight="16" orient="auto" markerUnits="userSpaceOnUse"><path d="M1,1 L15,8 L1,15 Z" fill="#fff" stroke="#333" stroke-width="1.4"/></marker>
+</defs>
+<rect width="1330" height="960" fill="#ffffff"/>
+<text x="20" y="28" font-size="15" font-weight="700" fill="#1a1a1a">UC-06 Administer Platform — detailed</text>
+<rect x="200" y="45" width="960" height="870" rx="4" fill="#fdfdfd" stroke="#666666" stroke-width="1.6"/>
+<text x="680.0" y="67" text-anchor="middle" font-size="14.5" font-weight="700" fill="#1a1a1a">REIH System</text>
+<line x1="587.9" y1="151.9" x2="385.2" y2="425.9" stroke="#333333" stroke-width="1.2" stroke-dasharray="6 4" marker-end="url(#open)"/>
+<line x1="654.2" y1="241.8" x2="403.5" y2="427.7" stroke="#333333" stroke-width="1.2" stroke-dasharray="6 4" marker-end="url(#open)"/>
+<line x1="677.1" y1="329.8" x2="427.9" y2="432.2" stroke="#333333" stroke-width="1.2" stroke-dasharray="6 4" marker-end="url(#open)"/>
+<line x1="679.6" y1="408.8" x2="459.7" y2="444.0" stroke="#333333" stroke-width="1.2" stroke-dasharray="6 4" marker-end="url(#open)"/>
+<line x1="679.6" y1="479.8" x2="469.9" y2="466.8" stroke="#333333" stroke-width="1.2" stroke-dasharray="6 4" marker-end="url(#open)"/>
+<line x1="693.0" y1="556.4" x2="442.2" y2="483.8" stroke="#333333" stroke-width="1.2" stroke-dasharray="6 4" marker-end="url(#open)"/>
+<line x1="690.0" y1="641.3" x2="415.4" y2="490.4" stroke="#333333" stroke-width="1.2" stroke-dasharray="6 4" marker-end="url(#open)"/>
+<line x1="658.8" y1="730.3" x2="396.6" y2="493.1" stroke="#333333" stroke-width="1.2" stroke-dasharray="6 4" marker-end="url(#open)"/>
+<line x1="588.4" y1="820.8" x2="381.7" y2="494.3" stroke="#333333" stroke-width="1.2" stroke-dasharray="6 4" marker-end="url(#open)"/>
+<line x1="708.6" y1="130.2" x2="924.4" y2="157.8" stroke="#333333" stroke-width="1.2" stroke-dasharray="6 4" marker-end="url(#open)"/>
+<line x1="792.9" y1="198.1" x2="924.1" y2="181.9" stroke="#333333" stroke-width="1.2" stroke-dasharray="6 4" marker-end="url(#open)"/>
+<line x1="110.0" y1="455.4" x2="248.2" y2="457.9" stroke="#333333" stroke-width="1.3"/>
+<line x1="1225.0" y1="170.0" x2="1122.0" y2="170.0" stroke="#333333" stroke-width="1.3"/>
+<text x="486.6" y="292.9" text-anchor="middle" font-size="11" fill="#555555" stroke="#fdfdfd" stroke-width="4" paint-order="stroke" stroke-linejoin="round">«extend»</text>
+<text x="528.8" y="338.8" text-anchor="middle" font-size="11" fill="#555555" stroke="#fdfdfd" stroke-width="4" paint-order="stroke" stroke-linejoin="round">«extend»</text>
+<text x="552.5" y="385.0" text-anchor="middle" font-size="11" fill="#555555" stroke="#fdfdfd" stroke-width="4" paint-order="stroke" stroke-linejoin="round">«extend»</text>
+<text x="569.6" y="430.4" text-anchor="middle" font-size="11" fill="#555555" stroke="#fdfdfd" stroke-width="4" paint-order="stroke" stroke-linejoin="round">«extend»</text>
+<text x="574.7" y="477.3" text-anchor="middle" font-size="11" fill="#555555" stroke="#fdfdfd" stroke-width="4" paint-order="stroke" stroke-linejoin="round">«extend»</text>
+<text x="567.6" y="524.1" text-anchor="middle" font-size="11" fill="#555555" stroke="#fdfdfd" stroke-width="4" paint-order="stroke" stroke-linejoin="round">«extend»</text>
+<text x="552.7" y="569.9" text-anchor="middle" font-size="11" fill="#555555" stroke="#fdfdfd" stroke-width="4" paint-order="stroke" stroke-linejoin="round">«extend»</text>
+<text x="527.7" y="615.7" text-anchor="middle" font-size="11" fill="#555555" stroke="#fdfdfd" stroke-width="4" paint-order="stroke" stroke-linejoin="round">«extend»</text>
+<text x="485.0" y="661.6" text-anchor="middle" font-size="11" fill="#555555" stroke="#fdfdfd" stroke-width="4" paint-order="stroke" stroke-linejoin="round">«extend»</text>
+<text x="816.5" y="148.0" text-anchor="middle" font-size="11" fill="#555555" stroke="#fdfdfd" stroke-width="4" paint-order="stroke" stroke-linejoin="round">«include»</text>
+<text x="858.5" y="194.0" text-anchor="middle" font-size="11" fill="#555555" stroke="#fdfdfd" stroke-width="4" paint-order="stroke" stroke-linejoin="round">«include»</text>
+<ellipse cx="360" cy="460" rx="112" ry="35" fill="#fff2cc" stroke="#d6b656" stroke-width="1.5"/>
+<text x="360" y="456.0" text-anchor="middle" font-size="11" font-weight="700" fill="#d6b656">UC-06</text>
+<text x="360" y="472.0" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1a1a1a">Administer Platform</text>
+<ellipse cx="613" cy="118" rx="102" ry="35" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+<text x="613" y="114.5" text-anchor="middle" font-size="11" font-weight="700" fill="#6c8ebf">UC-06.1</text>
+<text x="613" y="129.5" text-anchor="middle" font-size="12.5" fill="#1a1a1a">Manage Agencies</text>
+<ellipse cx="697" cy="210" rx="102" ry="35" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+<text x="697" y="206.5" text-anchor="middle" font-size="11" font-weight="700" fill="#6c8ebf">UC-06.3</text>
+<text x="697" y="221.5" text-anchor="middle" font-size="12.5" fill="#1a1a1a">Manage Staff Accounts</text>
+<ellipse cx="745" cy="302" rx="112" ry="35" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+<text x="745" y="291.0" text-anchor="middle" font-size="11" font-weight="700" fill="#6c8ebf">UC-06.2</text>
+<text x="745" y="306.0" text-anchor="middle" font-size="12.5" fill="#1a1a1a">Suspend or Reactivate</text>
+<text x="745" y="321.0" text-anchor="middle" font-size="12.5" fill="#1a1a1a">Agency</text>
+<ellipse cx="772" cy="394" rx="102" ry="35" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+<text x="772" y="390.5" text-anchor="middle" font-size="11" font-weight="700" fill="#6c8ebf">UC-06.4</text>
+<text x="772" y="405.5" text-anchor="middle" font-size="12.5" fill="#1a1a1a">Manage Reference Data</text>
+<ellipse cx="780" cy="486" rx="102" ry="35" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+<text x="780" y="482.5" text-anchor="middle" font-size="11" font-weight="700" fill="#6c8ebf">UC-06.5</text>
+<text x="780" y="497.5" text-anchor="middle" font-size="12.5" fill="#1a1a1a">Manage Exchange Rates</text>
+<ellipse cx="771" cy="579" rx="102" ry="35" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.5"/>
+<text x="771" y="575.5" text-anchor="middle" font-size="11" font-weight="700" fill="#6c8ebf">UC-06.6</text>
+<text x="771" y="590.5" text-anchor="middle" font-size="12.5" fill="#1a1a1a">Configure Settings</text>
+<ellipse cx="744" cy="671" rx="102" ry="35" fill="#e1d5e7" stroke="#9673a6" stroke-width="1.5"/>
+<text x="744" y="660.0" text-anchor="middle" font-size="11" font-weight="700" fill="#9673a6">UC-06.7</text>
+<text x="744" y="675.0" text-anchor="middle" font-size="12.5" fill="#1a1a1a">Review Contact</text>
+<text x="744" y="690.0" text-anchor="middle" font-size="12.5" fill="#1a1a1a">Reveals</text>
+<ellipse cx="695" cy="763" rx="102" ry="35" fill="#e1d5e7" stroke="#9673a6" stroke-width="1.5"/>
+<text x="695" y="759.5" text-anchor="middle" font-size="11" font-weight="700" fill="#9673a6">UC-06.8</text>
+<text x="695" y="774.5" text-anchor="middle" font-size="12.5" fill="#1a1a1a">Review Audit Log</text>
+<ellipse cx="610" cy="855" rx="102" ry="35" fill="#e1d5e7" stroke="#9673a6" stroke-width="1.5"/>
+<text x="610" y="844.0" text-anchor="middle" font-size="11" font-weight="700" fill="#9673a6">UC-06.9</text>
+<text x="610" y="859.0" text-anchor="middle" font-size="12.5" fill="#1a1a1a">View Platform</text>
+<text x="610" y="874.0" text-anchor="middle" font-size="12.5" fill="#1a1a1a">Overview</text>
+<ellipse cx="1020" cy="170" rx="102" ry="35" fill="#f8cecc" stroke="#b85450" stroke-width="1.5" stroke-dasharray="5 3"/>
+<text x="1020" y="166.5" text-anchor="middle" font-size="11" font-weight="700" fill="#b85450">UC-04.4</text>
+<text x="1020" y="181.5" text-anchor="middle" font-size="12.5" fill="#1a1a1a">Send Invitation Email</text>
+<g stroke="#111" stroke-width="1.7" fill="none" stroke-linecap="round"><circle cx="90" cy="434" r="9" fill="#fff"/><line x1="90" y1="443" x2="90" y2="469"/><line x1="74" y1="452" x2="106" y2="452"/><line x1="90" y1="469" x2="77" y2="489"/><line x1="90" y1="469" x2="103" y2="489"/></g>
+<text x="90" y="507" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1a1a1a">Platform Admin</text>
+<g stroke="#444" stroke-width="1.7" fill="none" stroke-linecap="round"><circle cx="1245" cy="149" r="9" fill="#fff"/><line x1="1245" y1="158" x2="1245" y2="184"/><line x1="1229" y1="167" x2="1261" y2="167"/><line x1="1245" y1="184" x2="1232" y2="204"/><line x1="1245" y1="184" x2="1258" y2="204"/></g>
+<text x="1245" y="222" text-anchor="middle" font-size="11.5" fill="#555555">«system»</text>
+<text x="1245" y="237" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1a1a1a">Email Service</text>
+<ellipse cx="34" cy="934" rx="14" ry="8" fill="#fff2cc" stroke="#d6b656" stroke-width="1.3"/>
+<text x="54" y="938" font-size="11.5" fill="#555555">Summary use case</text>
+<ellipse cx="180.4" cy="934" rx="14" ry="8" fill="#dae8fc" stroke="#6c8ebf" stroke-width="1.3"/>
+<text x="200.4" y="938" font-size="11.5" fill="#555555">Must</text>
+<ellipse cx="250.0" cy="934" rx="14" ry="8" fill="#e1d5e7" stroke="#9673a6" stroke-width="1.3"/>
+<text x="270.0" y="938" font-size="11.5" fill="#555555">Should</text>
+<ellipse cx="332.4" cy="934" rx="14" ry="8" fill="#f8cecc" stroke="#b85450" stroke-width="1.3"/>
+<text x="352.4" y="938" font-size="11.5" fill="#555555">Defined in another diagram</text>
+</svg>
