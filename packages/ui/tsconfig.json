@@ -1,0 +1,7 @@
+{
+  "extends": "@reih/config/tsconfig/next.json",
+  "compilerOptions": {
+    "plugins": []
+  },
+  "include": ["src"]
+}

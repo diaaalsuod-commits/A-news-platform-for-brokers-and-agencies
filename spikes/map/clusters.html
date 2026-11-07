@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>5,000 clustered points</title>
+    <link rel="stylesheet" href="/vendor/maplibre-gl.css" />
+    <style>
+      html,
+      body,
+      #map {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <script type="module">
+      import { Map as MapLibreMap } from '/vendor/maplibre-gl.mjs';
+
+      const params = new URLSearchParams(location.search);
+      const blank = params.get('style') === 'blank';
+      const metrics = (window.__metrics = {});
+      window.__errors = [];
+
+      // "blank" removes base map downloads, so the numbers show the clustering cost alone.
+      const style = blank
+        ? {
+            version: 8,
+            sources: {},
+            layers: [{ id: 'bg', type: 'background', paint: { 'background-color': '#eeeeee' } }],
+          }
+        : 'https://tiles.openfreemap.org/styles/liberty';
+
+      const map = (window.__map = new MapLibreMap({
+        container: 'map',
+        style,
+        center: [54.3, 24.4],
+        zoom: 6,
+        fadeDuration: 0,
+      }));
+
+      map.on('error', (event) => window.__errors.push(String(event.error?.message ?? event.error)));
+
+      const clusterLayers = ['clusters', 'unclustered'];
+
+      // "load" waits for every base map tile. "style.load" only waits for the style itself.
+      map.once('render', () => (metrics.firstPaint = performance.now()));
+      map.once(params.get('addOn') === 'style.load' ? 'style.load' : 'load', async () => {
+        metrics.styleLoaded = performance.now();
+        const fetched = await fetch('/out/points.geojson');
+        const data = await fetched.json();
+        metrics.pointCount = data.features.length;
+        metrics.dataFetched = performance.now();
+
+        map.addSource('projects', {
+          type: 'geojson',
+          data,
+          cluster: true,
+          clusterRadius: 50,
+          clusterMaxZoom: 14,
+        });
+        map.addLayer({
+          id: 'clusters',
+          type: 'circle',
+          source: 'projects',
+          filter: ['has', 'point_count'],
+          paint: {
+            'circle-color': ['step', ['get', 'point_count'], '#51a2d8', 50, '#f1b53c', 200, '#e0603a'],
+            'circle-radius': ['step', ['get', 'point_count'], 16, 50, 22, 200, 28],
+            'circle-stroke-width': 2,
+            'circle-stroke-color': '#ffffff',
+          },
+        });
+        map.addLayer({
+          id: 'unclustered',
+          type: 'circle',
+          source: 'projects',
+          filter: ['!', ['has', 'point_count']],
+          paint: {
+            'circle-color': '#a3201a',
+            'circle-radius': 6,
+            'circle-stroke-width': 2,
+            'circle-stroke-color': '#ffffff',
+          },
+        });
+        if (!blank) {
+          map.addLayer({
+            id: 'cluster-count',
+            type: 'symbol',
+            source: 'projects',
+            filter: ['has', 'point_count'],
+            layout: {
+              'text-field': ['get', 'point_count_abbreviated'],
+              'text-font': ['Noto Sans Bold'],
+              'text-size': 12,
+            },
+          });
+        }
+
+        const onRender = () => {
+          if (map.queryRenderedFeatures({ layers: clusterLayers }).length > 0) {
+            metrics.firstClusters = performance.now();
+            map.off('render', onRender);
+          }
+        };
+        map.on('render', onRender);
+        map.once('idle', () => {
+          metrics.firstIdle = performance.now();
+          window.__ready = true;
+        });
+      });
+
+      // Jumps with no animation. clustersReady is when the clustered data is drawn for the new zoom;
+      // idle also includes every base map tile.
+      window.zoomAndMeasure = (zoom, center) =>
+        new Promise((resolve) => {
+          const start = performance.now();
+          let clustersReady = null;
+          const onRender = () => {
+            if (clustersReady === null && map.isSourceLoaded('projects')) {
+              clustersReady = performance.now() - start;
+            }
+          };
+          map.on('render', onRender);
+          map.jumpTo({ zoom, center });
+          map.once('idle', () => {
+            map.off('render', onRender);
+            resolve({
+              zoom,
+              clustersReady: Math.round(clustersReady ?? performance.now() - start),
+              idle: Math.round(performance.now() - start),
+              visible: map.queryRenderedFeatures({ layers: clusterLayers }).length,
+            });
+          });
+        });
+
+      // Frame times during a real animated zoom: this is what "smooth" means to a user.
+      window.animateAndMeasure = (fromZoom, toZoom, center, duration) =>
+        new Promise((resolve) => {
+          map.jumpTo({ zoom: fromZoom, center });
+          map.once('idle', () => {
+            const frames = [];
+            let last = performance.now();
+            let running = true;
+            const tick = (now) => {
+              frames.push(now - last);
+              last = now;
+              if (running) requestAnimationFrame(tick);
+            };
+            requestAnimationFrame(tick);
+            map.once('moveend', () => {
+              running = false;
+              const sorted = [...frames].sort((a, b) => a - b);
+              const total = frames.reduce((sum, value) => sum + value, 0);
+              resolve({
+                frames: frames.length,
+                fps: Math.round((frames.length / total) * 1000),
+                p95FrameMs: Math.round(sorted[Math.floor(sorted.length * 0.95)]),
+                worstFrameMs: Math.round(sorted[sorted.length - 1]),
+              });
+            });
+            map.easeTo({ zoom: toZoom, center, duration });
+          });
+        });
+    </script>
+  </body>
+</html>

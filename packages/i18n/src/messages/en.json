@@ -1,0 +1,32 @@
+{
+  "common": {
+    "languageSwitch": "Change language",
+    "languageName": {
+      "ar": "العربية",
+      "en": "English"
+    }
+  },
+  "broker": {
+    "title": "REIH Broker"
+  },
+  "ops": {
+    "title": "REIH Operations"
+  },
+  "health": {
+    "title": "System status",
+    "loading": "Checking the system…",
+    "error": "The system status could not be loaded.",
+    "retry": "Try again",
+    "overall": "Overall",
+    "database": "Database",
+    "redis": "Redis",
+    "status": {
+      "ok": "Healthy",
+      "degraded": "Degraded"
+    },
+    "service": {
+      "up": "Up",
+      "down": "Down"
+    }
+  }
+}

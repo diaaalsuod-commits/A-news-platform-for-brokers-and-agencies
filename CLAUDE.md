@@ -81,6 +81,8 @@ Rules:
 - Every data view has loading, empty, and error-with-retry states (SRS 3.1, NFR-12, NFR-17).
 - Keyboard usable, visible focus, WCAG 2.1 AA contrast (NFR-14).
 - Forms: react-hook-form + the zod schemas from packages/contracts.
+- Wrap numbers, units, dates and Latin tokens inside Arabic text in <bdi dir="ltr"> (web and PDF).
+- Map snapshots for PDFs need preserveDrawingBuffer and a check that the image is not blank.
 
 ## Security (NFR-08, NFR-10)
 Argon2id; rate limits on login, password reset and reveal; uploads checked by real file type and size;

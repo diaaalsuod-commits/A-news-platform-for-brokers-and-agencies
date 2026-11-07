@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <title>كتالوج تجريبي</title>
+    <link rel="stylesheet" href="/vendor/maplibre-gl.css" />
+    <style>
+      @font-face {
+        font-family: 'Plex Arabic';
+        src: url('/fonts/ibm-plex-sans-arabic-arabic-400-normal.woff2') format('woff2');
+        font-weight: 400;
+      }
+      @font-face {
+        font-family: 'Plex Arabic';
+        src: url('/fonts/ibm-plex-sans-arabic-arabic-600-normal.woff2') format('woff2');
+        font-weight: 600;
+      }
+      @font-face {
+        font-family: 'Plex Latin';
+        src: url('/fonts/ibm-plex-sans-arabic-latin-400-normal.woff2') format('woff2');
+        font-weight: 400;
+      }
+      @font-face {
+        font-family: 'Plex Latin';
+        src: url('/fonts/ibm-plex-sans-arabic-latin-600-normal.woff2') format('woff2');
+        font-weight: 600;
+      }
+      @page {
+        size: A4;
+        margin: 15mm;
+      }
+      body {
+        margin: 0;
+        color: #1c1c1a;
+        font-family: 'Plex Latin', 'Plex Arabic', sans-serif;
+        font-size: 11pt;
+        line-height: 1.5;
+      }
+      h1 {
+        margin: 0 0 2mm;
+        font-size: 20pt;
+        font-weight: 600;
+      }
+      h2 {
+        margin: 6mm 0 2mm;
+        font-size: 13pt;
+        font-weight: 600;
+      }
+      p {
+        margin: 0 0 2mm;
+      }
+      .intro {
+        display: flex;
+        gap: 6mm;
+        align-items: flex-start;
+      }
+      .intro img {
+        width: 60mm;
+        height: 40mm;
+        border-radius: 2mm;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 10pt;
+      }
+      th,
+      td {
+        padding: 1.5mm 2mm;
+        border: 0.25mm solid #d6d6d0;
+        text-align: start;
+      }
+      th {
+        background: #f2f2ef;
+        font-weight: 600;
+      }
+      #map {
+        width: 180mm;
+        height: 85mm;
+        border: 0.25mm solid #d6d6d0;
+      }
+      #map img {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+      .attribution {
+        margin-top: 1mm;
+        color: #55554f;
+        font-size: 8pt;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>مشروع واحة النخيل التجريبي</h1>
+    <div class="intro">
+      <div>
+        <p>
+          مشروع سكني خيالي في مرسى دبي من تطوير شركة الأفق النموذجية، أُعدّ هذا الملف لاختبار طباعة
+          العربية من اليمين إلى اليسار مع أرقام لاتينية مثل 2027 ورموز مثل Q4 داخل الجملة نفسها.
+        </p>
+        <p>
+          موعد التسليم المتوقع: <bdi dir="ltr">Q4 2027</bdi>. آخر تحقق من البيانات:
+          <bdi dir="ltr">2026-11-01</bdi>.
+        </p>
+      </div>
+      <img id="photo" src="/out/building.png" alt="رسم لمبنى خيالي" />
+    </div>
+
+    <h2>الوحدات المتاحة</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>الوحدة</th>
+          <th>النوع</th>
+          <th>المساحة</th>
+          <th>الطابق</th>
+          <th>السعر (AED)</th>
+          <th>السعر (USD)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>A-1204</td>
+          <td>شقة بغرفة نوم واحدة</td>
+          <td><bdi dir="ltr">78.5 m²</bdi></td>
+          <td>12</td>
+          <td>1,250,000</td>
+          <td>340,368</td>
+        </tr>
+        <tr>
+          <td>B-0702</td>
+          <td>شقة بغرفتي نوم</td>
+          <td><bdi dir="ltr">112 m²</bdi></td>
+          <td>7</td>
+          <td>1,890,500</td>
+          <td>514,769</td>
+        </tr>
+        <tr>
+          <td>PH-3001</td>
+          <td>بنتهاوس بـ 4 غرف نوم</td>
+          <td><bdi dir="ltr">315.25 m²</bdi></td>
+          <td>30</td>
+          <td>7,400,000</td>
+          <td>2,014,978</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>الموقع على الخريطة</h2>
+    <div id="map"></div>
+    <p class="attribution" dir="ltr">© OpenFreeMap © OpenMapTiles © OpenStreetMap contributors</p>
+
+    <script type="module">
+      import { Map as MapLibreMap } from '/vendor/maplibre-gl.mjs';
+
+      const params = new URLSearchParams(location.search);
+      const point = params.get('at')?.split(',').map(Number) ?? [55.1403, 25.0805];
+      window.__errors = [];
+      window.__timing = {};
+
+      const map = new MapLibreMap({
+        container: 'map',
+        style: 'https://tiles.openfreemap.org/styles/liberty',
+        center: point,
+        zoom: 13.5,
+        interactive: false,
+        attributionControl: false,
+        fadeDuration: 0,
+        pixelRatio: 2,
+        // Needed to read the finished picture back from the canvas.
+        canvasContextAttributes: { preserveDrawingBuffer: params.get('preserve') !== 'off' },
+      });
+
+      map.on('error', (event) => window.__errors.push(String(event.error?.message ?? event.error)));
+
+      map.on('load', () => {
+        map.addSource('project', {
+          type: 'geojson',
+          data: { type: 'Feature', geometry: { type: 'Point', coordinates: point }, properties: {} },
+        });
+        map.addLayer({
+          id: 'project',
+          type: 'circle',
+          source: 'project',
+          paint: {
+            'circle-radius': 9,
+            'circle-color': '#a3201a',
+            'circle-stroke-width': 3,
+            'circle-stroke-color': '#ffffff',
+          },
+        });
+      });
+
+      // "idle" fires once the style, the sources and every visible tile are loaded and drawn.
+      map.once('idle', async () => {
+        window.__timing.mapIdle = performance.now();
+        await document.fonts.ready;
+        await document.getElementById('photo').decode();
+        if (params.get('capture') === 'snapshot') {
+          const image = new Image();
+          image.src = map.getCanvas().toDataURL('image/png');
+          await image.decode();
+          document.getElementById('map').replaceChildren(image);
+        }
+        window.__ready = true;
+      });
+    </script>
+  </body>
+</html>

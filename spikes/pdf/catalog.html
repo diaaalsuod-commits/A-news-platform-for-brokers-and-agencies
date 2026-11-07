@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <title>كتالوج من 10 مشاريع</title>
+    <link rel="stylesheet" href="/vendor/maplibre-gl.css" />
+    <style>
+      @font-face {
+        font-family: 'Plex Arabic';
+        src: url('/fonts/ibm-plex-sans-arabic-arabic-400-normal.woff2') format('woff2');
+        font-weight: 400;
+      }
+      @font-face {
+        font-family: 'Plex Arabic';
+        src: url('/fonts/ibm-plex-sans-arabic-arabic-600-normal.woff2') format('woff2');
+        font-weight: 600;
+      }
+      @font-face {
+        font-family: 'Plex Latin';
+        src: url('/fonts/ibm-plex-sans-arabic-latin-400-normal.woff2') format('woff2');
+        font-weight: 400;
+      }
+      @font-face {
+        font-family: 'Plex Latin';
+        src: url('/fonts/ibm-plex-sans-arabic-latin-600-normal.woff2') format('woff2');
+        font-weight: 600;
+      }
+      @page {
+        size: A4;
+        margin: 15mm;
+      }
+      body {
+        margin: 0;
+        color: #1c1c1a;
+        font-family: 'Plex Latin', 'Plex Arabic', sans-serif;
+        font-size: 11pt;
+        line-height: 1.5;
+      }
+      section {
+        break-after: page;
+      }
+      section:last-of-type {
+        break-after: auto;
+      }
+      h1 {
+        margin: 0 0 3mm;
+        font-size: 20pt;
+        font-weight: 600;
+      }
+      .intro {
+        display: flex;
+        gap: 6mm;
+        align-items: flex-start;
+        margin-bottom: 4mm;
+      }
+      .intro img {
+        width: 60mm;
+        height: 40mm;
+        border-radius: 2mm;
+      }
+      table {
+        width: 100%;
+        margin-bottom: 4mm;
+        border-collapse: collapse;
+        font-size: 10pt;
+      }
+      th,
+      td {
+        padding: 1.5mm 2mm;
+        border: 0.25mm solid #d6d6d0;
+        text-align: start;
+      }
+      th {
+        background: #f2f2ef;
+        font-weight: 600;
+      }
+      .map {
+        display: block;
+        width: 180mm;
+        height: 85mm;
+      }
+      .attribution {
+        margin: 1mm 0 0;
+        color: #55554f;
+        font-size: 8pt;
+      }
+      /* One map instance moves from project to project; it is never printed itself. */
+      #stage {
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: -1;
+        width: 180mm;
+        height: 85mm;
+      }
+      @media print {
+        #stage {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="stage"></div>
+    <main id="catalog"></main>
+
+    <script type="module">
+      import { Map as MapLibreMap } from '/vendor/maplibre-gl.mjs';
+
+      const params = new URLSearchParams(location.search);
+      window.__errors = [];
+      window.__report = { maps: [] };
+
+      // All fictional (D-02). Locations are spread across the UAE, so no two maps share tiles.
+      const PROJECTS = [
+        ['واحة النخيل', 'مرسى دبي', [55.1403, 25.0805]],
+        ['أبراج الخور', 'خور دبي', [55.3132, 25.2285]],
+        ['حدائق المجاز', 'الشارقة', [55.3781, 25.3463]],
+        ['شاطئ الراشدية', 'عجمان', [55.4531, 25.4052]],
+        ['نسيم القيوين', 'أم القيوين', [55.5549, 25.5647]],
+        ['جبال الرأس', 'رأس الخيمة', [55.9754, 25.7895]],
+        ['خليج الفجيرة', 'الفجيرة', [56.3265, 25.1288]],
+        ['كورنيش العاصمة', 'أبوظبي', [54.3773, 24.4539]],
+        ['جزيرة الريم الجديدة', 'أبوظبي', [54.4067, 24.4976]],
+        ['واحة العين', 'العين', [55.7447, 24.2075]],
+      ];
+
+      function sectionHtml(name, area, index) {
+        const number = String(index + 1).padStart(2, '0');
+        return `<section>
+          <h1>مشروع ${name}</h1>
+          <div class="intro">
+            <div>
+              <p>مشروع سكني خيالي في ${area}. موعد التسليم المتوقع:
+              <bdi dir="ltr">Q${(index % 4) + 1} 2028</bdi>. آخر تحقق من البيانات:
+              <bdi dir="ltr">2026-11-${number}</bdi>.</p>
+            </div>
+            <img src="/out/building.png" alt="رسم لمبنى خيالي" />
+          </div>
+          <table>
+            <thead><tr><th>الوحدة</th><th>النوع</th><th>المساحة</th><th>السعر (AED)</th></tr></thead>
+            <tbody>
+              <tr><td>A-${number}01</td><td>شقة بغرفة نوم واحدة</td>
+                <td><bdi dir="ltr">78.5 m²</bdi></td><td>1,250,000</td></tr>
+              <tr><td>B-${number}02</td><td>شقة بغرفتي نوم</td>
+                <td><bdi dir="ltr">112 m²</bdi></td><td>1,890,500</td></tr>
+            </tbody>
+          </table>
+          <img class="map" id="map-${index}" alt="موقع المشروع" />
+          <p class="attribution" dir="ltr">© OpenFreeMap © OpenMapTiles © OpenStreetMap contributors</p>
+        </section>`;
+      }
+
+      /** A lost drawing buffer gives a fully transparent image, with no error from anywhere. */
+      function checkNotBlank(source) {
+        const probe = document.createElement('canvas');
+        probe.width = 64;
+        probe.height = 30;
+        const context = probe.getContext('2d', { willReadFrequently: true });
+        context.drawImage(source, 0, 0, probe.width, probe.height);
+        const { data } = context.getImageData(0, 0, probe.width, probe.height);
+        const colours = new Set();
+        let opaque = 0;
+        for (let i = 0; i < data.length; i += 4) {
+          if (data[i + 3] === 255) opaque += 1;
+          colours.add((data[i] << 16) | (data[i + 1] << 8) | data[i + 2]);
+        }
+        const opaqueShare = opaque / (probe.width * probe.height);
+        return { blank: opaqueShare < 0.99, opaqueShare, colours: colours.size };
+      }
+
+      document.getElementById('catalog').innerHTML = PROJECTS.map(([name, area], index) =>
+        sectionHtml(name, area, index),
+      ).join('');
+
+      const map = new MapLibreMap({
+        container: 'stage',
+        style: 'https://tiles.openfreemap.org/styles/liberty',
+        center: PROJECTS[0][2],
+        zoom: 13.5,
+        interactive: false,
+        attributionControl: false,
+        fadeDuration: 0,
+        pixelRatio: 2,
+        canvasContextAttributes: { preserveDrawingBuffer: params.get('preserve') !== 'off' },
+      });
+      map.on('error', (event) => window.__errors.push(String(event.error?.message ?? event.error)));
+      await map.once('load');
+
+      const pointAt = (coordinates) => ({
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates },
+        properties: {},
+      });
+      map.addSource('project', { type: 'geojson', data: pointAt(PROJECTS[0][2]) });
+      map.addLayer({
+        id: 'project',
+        type: 'circle',
+        source: 'project',
+        paint: {
+          'circle-radius': 9,
+          'circle-color': '#a3201a',
+          'circle-stroke-width': 3,
+          'circle-stroke-color': '#ffffff',
+        },
+      });
+
+      for (const [index, [, , center]] of PROJECTS.entries()) {
+        const start = performance.now();
+        const idle = map.once('idle');
+        map.getSource('project').setData(pointAt(center));
+        map.jumpTo({ center });
+        await idle;
+        // Spike A lost the picture when other work ran between "idle" and the read. This forces that.
+        if (params.has('lateRead')) await new Promise((resolve) => setTimeout(resolve, 100));
+        const canvas = map.getCanvas();
+        const check = checkNotBlank(canvas);
+        const image = document.getElementById(`map-${index}`);
+        image.src = canvas.toDataURL('image/jpeg', 0.9);
+        await image.decode();
+        window.__report.maps.push({ ms: Math.round(performance.now() - start), ...check });
+      }
+
+      await document.fonts.ready;
+      await Promise.all([...document.images].map((image) => image.decode()));
+      map.remove();
+      window.__ready = true;
+    </script>
+  </body>
+</html>

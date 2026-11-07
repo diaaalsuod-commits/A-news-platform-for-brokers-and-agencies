@@ -1,0 +1,246 @@
+{
+  "projects": 10,
+  "cpus": 12,
+  "live": [
+    {
+      "ok": true,
+      "totalMs": 17804,
+      "pageMs": 17576,
+      "printMs": 228,
+      "sizeKb": 1868,
+      "blankMaps": 0,
+      "mapsMs": [
+        217,
+        809,
+        445,
+        542,
+        335,
+        336,
+        340,
+        679,
+        367,
+        385
+      ],
+      "minColours": 195,
+      "errors": [],
+      "network": {
+        "requests": 43,
+        "downloaded": 43,
+        "bytes": 3063836,
+        "downloadMsSum": 59447,
+        "failed": 0
+      }
+    },
+    {
+      "ok": true,
+      "totalMs": 16466,
+      "pageMs": 16291,
+      "printMs": 174,
+      "sizeKb": 1868,
+      "blankMaps": 0,
+      "mapsMs": [
+        190,
+        647,
+        366,
+        418,
+        332,
+        262,
+        366,
+        611,
+        286,
+        316
+      ],
+      "minColours": 195,
+      "errors": [],
+      "network": {
+        "requests": 43,
+        "downloaded": 43,
+        "bytes": 3063836,
+        "downloadMsSum": 57451,
+        "failed": 0
+      }
+    },
+    {
+      "ok": true,
+      "totalMs": 17517,
+      "pageMs": 17338,
+      "printMs": 179,
+      "sizeKb": 1868,
+      "blankMaps": 0,
+      "mapsMs": [
+        185,
+        1036,
+        491,
+        545,
+        262,
+        315,
+        785,
+        652,
+        318,
+        346
+      ],
+      "minColours": 195,
+      "errors": [],
+      "network": {
+        "requests": 43,
+        "downloaded": 43,
+        "bytes": 3063836,
+        "downloadMsSum": 60053,
+        "failed": 0
+      }
+    }
+  ],
+  "replay": [
+    {
+      "ok": true,
+      "totalMs": 2857,
+      "pageMs": 2674,
+      "printMs": 183,
+      "sizeKb": 1868,
+      "blankMaps": 0,
+      "mapsMs": [
+        185,
+        224,
+        175,
+        253,
+        166,
+        127,
+        138,
+        243,
+        140,
+        165
+      ],
+      "minColours": 195,
+      "errors": [],
+      "network": {
+        "requests": 43,
+        "downloaded": 0,
+        "bytes": 0,
+        "downloadMsSum": 0,
+        "failed": 0
+      }
+    },
+    {
+      "ok": true,
+      "totalMs": 2985,
+      "pageMs": 2809,
+      "printMs": 176,
+      "sizeKb": 1868,
+      "blankMaps": 0,
+      "mapsMs": [
+        202,
+        231,
+        173,
+        264,
+        136,
+        152,
+        160,
+        245,
+        143,
+        185
+      ],
+      "minColours": 195,
+      "errors": [],
+      "network": {
+        "requests": 43,
+        "downloaded": 0,
+        "bytes": 0,
+        "downloadMsSum": 0,
+        "failed": 0
+      }
+    },
+    {
+      "ok": true,
+      "totalMs": 2873,
+      "pageMs": 2695,
+      "printMs": 178,
+      "sizeKb": 1868,
+      "blankMaps": 0,
+      "mapsMs": [
+        186,
+        227,
+        178,
+        289,
+        133,
+        124,
+        184,
+        229,
+        138,
+        158
+      ],
+      "minColours": 195,
+      "errors": [],
+      "network": {
+        "requests": 43,
+        "downloaded": 0,
+        "bytes": 0,
+        "downloadMsSum": 0,
+        "failed": 0
+      }
+    }
+  ],
+  "guard": {
+    "ok": true,
+    "totalMs": 3590,
+    "pageMs": 3429,
+    "printMs": 161,
+    "sizeKb": 76,
+    "blankMaps": 10,
+    "mapsMs": [
+      208,
+      311,
+      242,
+      322,
+      220,
+      196,
+      240,
+      278,
+      221,
+      233
+    ],
+    "minColours": 1,
+    "errors": [],
+    "network": {
+      "requests": 43,
+      "downloaded": 0,
+      "bytes": 0,
+      "downloadMsSum": 0,
+      "failed": 0
+    }
+  },
+  "guardControl": {
+    "ok": true,
+    "totalMs": 3773,
+    "pageMs": 3573,
+    "printMs": 200,
+    "sizeKb": 1868,
+    "blankMaps": 0,
+    "mapsMs": [
+      214,
+      293,
+      254,
+      326,
+      231,
+      215,
+      249,
+      313,
+      263,
+      262
+    ],
+    "minColours": 195,
+    "errors": [],
+    "network": {
+      "requests": 43,
+      "downloaded": 0,
+      "bytes": 0,
+      "downloadMsSum": 0,
+      "failed": 0
+    }
+  },
+  "summary": {
+    "liveMedianMs": 17517,
+    "renderOnlyMedianMs": 2873,
+    "networkMs": 14644,
+    "guardCaughtBlankMaps": 10
+  }
+}

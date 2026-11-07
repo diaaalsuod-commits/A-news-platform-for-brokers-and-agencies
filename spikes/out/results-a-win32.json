@@ -1,0 +1,246 @@
+{
+  "configs": [
+    {
+      "name": "default",
+      "args": [],
+      "ok": true,
+      "webgl": {
+        "webgl": true,
+        "version": 2,
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      },
+      "errors": [],
+      "sizeKb": 332,
+      "ms": {
+        "launch": 75,
+        "pageAndMap": 11888,
+        "print": 182,
+        "total": 12145
+      }
+    },
+    {
+      "name": "no-gpu",
+      "args": [
+        "--disable-gpu"
+      ],
+      "ok": true,
+      "webgl": {
+        "webgl": true,
+        "version": 2,
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      },
+      "errors": [],
+      "sizeKb": 332,
+      "ms": {
+        "launch": 88,
+        "pageAndMap": 3173,
+        "print": 187,
+        "total": 3448
+      }
+    },
+    {
+      "name": "unsafe-swiftshader",
+      "args": [
+        "--enable-unsafe-swiftshader"
+      ],
+      "ok": true,
+      "webgl": {
+        "webgl": true,
+        "version": 2,
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      },
+      "errors": [],
+      "sizeKb": 332,
+      "ms": {
+        "launch": 81,
+        "pageAndMap": 5229,
+        "print": 178,
+        "total": 5488
+      }
+    },
+    {
+      "name": "angle-swiftshader",
+      "args": [
+        "--use-gl=angle",
+        "--use-angle=swiftshader",
+        "--enable-unsafe-swiftshader"
+      ],
+      "ok": true,
+      "webgl": {
+        "webgl": true,
+        "version": 2,
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      },
+      "errors": [],
+      "sizeKb": 332,
+      "ms": {
+        "launch": 100,
+        "pageAndMap": 3214,
+        "print": 185,
+        "total": 3499
+      }
+    },
+    {
+      "name": "no-gpu+angle-swiftshader",
+      "args": [
+        "--disable-gpu",
+        "--use-gl=angle",
+        "--use-angle=swiftshader",
+        "--enable-unsafe-swiftshader"
+      ],
+      "ok": true,
+      "webgl": {
+        "webgl": true,
+        "version": 2,
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      },
+      "errors": [],
+      "sizeKb": 332,
+      "ms": {
+        "launch": 76,
+        "pageAndMap": 5329,
+        "print": 176,
+        "total": 5581
+      }
+    }
+  ],
+  "captures": [
+    {
+      "name": "direct-canvas",
+      "ok": true,
+      "webgl": {
+        "webgl": true,
+        "version": 2,
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      },
+      "errors": [],
+      "sizeKb": 332,
+      "ms": {
+        "launch": 86,
+        "pageAndMap": 3997,
+        "print": 192,
+        "total": 4275
+      }
+    },
+    {
+      "name": "direct-canvas-no-preserve",
+      "ok": true,
+      "webgl": {
+        "webgl": true,
+        "version": 2,
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      },
+      "errors": [],
+      "sizeKb": 47,
+      "ms": {
+        "launch": 87,
+        "pageAndMap": 4222,
+        "print": 184,
+        "total": 4492
+      }
+    },
+    {
+      "name": "snapshot-no-preserve",
+      "ok": true,
+      "webgl": {
+        "webgl": true,
+        "version": 2,
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      },
+      "errors": [],
+      "sizeKb": 47,
+      "ms": {
+        "launch": 91,
+        "pageAndMap": 3763,
+        "print": 176,
+        "total": 4030
+      }
+    }
+  ],
+  "runs": [
+    {
+      "ok": true,
+      "webgl": {
+        "webgl": true,
+        "version": 2,
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      },
+      "errors": [],
+      "sizeKb": 332,
+      "ms": {
+        "launch": 89,
+        "pageAndMap": 6587,
+        "print": 174,
+        "total": 6850
+      }
+    },
+    {
+      "ok": true,
+      "webgl": {
+        "webgl": true,
+        "version": 2,
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      },
+      "errors": [],
+      "sizeKb": 332,
+      "ms": {
+        "launch": 79,
+        "pageAndMap": 4960,
+        "print": 181,
+        "total": 5220
+      }
+    },
+    {
+      "ok": true,
+      "webgl": {
+        "webgl": true,
+        "version": 2,
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      },
+      "errors": [],
+      "sizeKb": 332,
+      "ms": {
+        "launch": 77,
+        "pageAndMap": 3217,
+        "print": 218,
+        "total": 3512
+      }
+    }
+  ],
+  "tenMaps": {
+    "places": 10,
+    "errors": [],
+    "cold": {
+      "eachMs": [
+        6299,
+        1832,
+        1611,
+        1458,
+        1269,
+        3120,
+        2268,
+        2494,
+        1414,
+        1315
+      ],
+      "totalMs": 23080
+    },
+    "warmCache": {
+      "eachMs": [
+        1039,
+        1086,
+        952,
+        927,
+        822,
+        868,
+        919,
+        1022,
+        906,
+        889
+      ],
+      "totalMs": 9428
+    }
+  },
+  "medianTotalMs": 5220,
+  "workingConfig": "default"
+}

@@ -1,0 +1,22 @@
+# Caddy runs in Docker and reaches the apps running on the host.
+# tls internal: Caddy's own local certificate authority (development only).
+
+(apps) {
+	tls internal
+
+	handle /api/* {
+		reverse_proxy host.docker.internal:4000
+	}
+
+	handle {
+		reverse_proxy {args[0]}
+	}
+}
+
+app.localhost {
+	import apps host.docker.internal:3001
+}
+
+ops.localhost {
+	import apps host.docker.internal:3002
+}

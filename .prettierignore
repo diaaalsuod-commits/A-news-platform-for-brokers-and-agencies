@@ -1,0 +1,10 @@
+# Source documents keep their exact formatting.
+docs/
+CLAUDE.md
+pnpm-lock.yaml
+Caddyfile
+**/dist/
+**/.next/
+**/.turbo/
+**/coverage/
+**/next-env.d.ts

@@ -1,0 +1,32 @@
+{
+  "common": {
+    "languageSwitch": "تغيير اللغة",
+    "languageName": {
+      "ar": "العربية",
+      "en": "English"
+    }
+  },
+  "broker": {
+    "title": "REIH للوسطاء"
+  },
+  "ops": {
+    "title": "REIH للعمليات"
+  },
+  "health": {
+    "title": "حالة النظام",
+    "loading": "جارٍ فحص النظام…",
+    "error": "تعذّر تحميل حالة النظام.",
+    "retry": "إعادة المحاولة",
+    "overall": "الحالة العامة",
+    "database": "قاعدة البيانات",
+    "redis": "Redis",
+    "status": {
+      "ok": "سليم",
+      "degraded": "متدهور"
+    },
+    "service": {
+      "up": "يعمل",
+      "down": "متوقف"
+    }
+  }
+}
