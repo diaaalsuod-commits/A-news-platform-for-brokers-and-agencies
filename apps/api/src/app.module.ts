@@ -11,6 +11,7 @@ import { IdentityModule } from './modules/identity/index.js';
 import { ProjectQueryModule } from './modules/project-query/index.js';
 import { AuditModule } from './shared/audit/index.js';
 import { ConfigModule, ENV, type Env } from './shared/config/index.js';
+import { EventsModule } from './shared/events/index.js';
 import { buildPinoHttpOptions, HttpModule } from './shared/http/index.js';
 
 @Module({
@@ -21,6 +22,7 @@ import { buildPinoHttpOptions, HttpModule } from './shared/http/index.js';
       inject: [ENV],
       useFactory: (env: Env) => ({ pinoHttp: buildPinoHttpOptions(env) }),
     }),
+    EventsModule,
     HttpModule,
     AuditModule,
     IdentityModule,

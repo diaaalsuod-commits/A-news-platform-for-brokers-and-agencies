@@ -27,6 +27,13 @@ describe('GET /api/v1/health', () => {
     process.env.LOG_LEVEL = 'silent';
     process.env.DATABASE_URL = postgres.getConnectionUri();
     process.env.REDIS_URL = `redis://${redis.getHost()}:${redis.getMappedPort(6379)}`;
+    process.env.SMTP_HOST = 'localhost';
+    process.env.SMTP_PORT = '1025';
+    process.env.SMTP_FROM = 'REIH <no-reply@example.test>';
+    process.env.FILES_DIR = './files';
+    process.env.URL_SIGNING_SECRET = 'a-test-secret-of-at-least-32-characters';
+    process.env.APP_URL = 'https://app.localhost';
+    process.env.OPS_URL = 'https://ops.localhost';
 
     const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
     app = moduleRef.createNestApplication();

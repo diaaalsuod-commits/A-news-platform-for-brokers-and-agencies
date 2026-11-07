@@ -1,4 +1,38 @@
 {
+  "units": {
+    "sqm": "m²",
+    "sqft": "ft²"
+  },
+  "errors": {
+    "VALIDATION_FAILED": "Some of the submitted data is not valid.",
+    "BAD_REQUEST": "The request could not be understood.",
+    "UNAUTHORIZED": "Please log in to continue.",
+    "FORBIDDEN": "You do not have permission to do this.",
+    "NOT_FOUND": "What you are looking for was not found.",
+    "CONFLICT": "This conflicts with existing data.",
+    "PAYLOAD_TOO_LARGE": "The request is too large.",
+    "FILE_TOO_LARGE": "The file is larger than the allowed size.",
+    "FILE_TYPE_NOT_ALLOWED": "This file type is not allowed.",
+    "TOO_MANY_REQUESTS": "Too many attempts. Please try again later.",
+    "SERVICE_UNAVAILABLE": "The service is temporarily unavailable. Please try again shortly.",
+    "INTERNAL_ERROR": "Something went wrong on our side. Please try again."
+  },
+  "email": {
+    "invitation": {
+      "subject": "You are invited to REIH",
+      "body": "You have been invited to join REIH. Use the link below to set your password and activate your account.",
+      "action": "Activate your account",
+      "validity": "This link is valid for {count} days and can be used once.",
+      "ignore": "If you were not expecting this invitation, you can ignore this email."
+    },
+    "passwordReset": {
+      "subject": "Reset your REIH password",
+      "body": "We received a request to reset your password. Use the link below to choose a new one.",
+      "action": "Reset your password",
+      "validity": "This link is valid for {count} minutes and can be used once.",
+      "ignore": "If you did not ask for this, you can ignore this email and your password will not change."
+    }
+  },
   "common": {
     "languageSwitch": "Change language",
     "languageName": {

@@ -7,6 +7,13 @@ const valid = {
   LOG_LEVEL: 'silent',
   DATABASE_URL: 'postgres://user:secret-value@localhost:5432/reih',
   REDIS_URL: 'redis://localhost:6379',
+  SMTP_HOST: 'localhost',
+  SMTP_PORT: '1025',
+  SMTP_FROM: 'REIH <no-reply@example.test>',
+  FILES_DIR: './files',
+  URL_SIGNING_SECRET: 'a-test-secret-of-at-least-32-characters',
+  APP_URL: 'https://app.localhost',
+  OPS_URL: 'https://ops.localhost',
 };
 
 describe('parseEnv', () => {
@@ -23,6 +30,25 @@ describe('parseEnv', () => {
   it('fails when a URL has the wrong protocol', () => {
     expect(() => parseEnv({ ...valid, DATABASE_URL: 'mysql://localhost/reih' })).toThrow(
       /DATABASE_URL/,
+    );
+  });
+
+  it('refuses a signing secret shorter than 32 characters', () => {
+    expect(() => parseEnv({ ...valid, URL_SIGNING_SECRET: 'too-short' })).toThrow(
+      /URL_SIGNING_SECRET/,
+    );
+  });
+
+  it('does not need the first admin or an SMTP login, and treats a blank value as not set', () => {
+    const env = parseEnv({ ...valid, SMTP_USER: '', FIRST_ADMIN_EMAIL: '' });
+    expect(env.SMTP_USER).toBeUndefined();
+    expect(env.FIRST_ADMIN_EMAIL).toBeUndefined();
+    expect(env.FIRST_ADMIN_PASSWORD).toBeUndefined();
+  });
+
+  it('refuses a first admin email that is not an email', () => {
+    expect(() => parseEnv({ ...valid, FIRST_ADMIN_EMAIL: 'not-an-email' })).toThrow(
+      /FIRST_ADMIN_EMAIL/,
     );
   });
 
