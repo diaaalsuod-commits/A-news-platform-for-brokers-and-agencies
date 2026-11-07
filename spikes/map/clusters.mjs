@@ -1,14 +1,18 @@
 // Spike B: 5,000 random points inside the UAE, clustered by MapLibre on the OpenFreeMap liberty style.
+// One live run shows what this network costs and records every tile. The replay runs answer tiles
+// from memory, so their numbers are rendering and clustering alone.
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { chromium, median, OUT, probeWebgl, startServer } from '../common.mjs';
 
 const SWIFTSHADER = ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'];
+const TILES = 'https://tiles.openfreemap.org/**';
 const RUNS = 3;
 const DUBAI = [55.27, 25.2];
 const ZOOM_STEPS = [7, 8, 9, 10, 11, 12, 13, 6];
 
-// A rough outline of the UAE mainland, drawn by hand for this spike. It is not survey data.
+// A rough outline of the UAE, drawn by hand for this spike. It is not survey data, and some points
+// land just offshore. That does not matter for timing.
 const UAE = [
   [51.59, 24.12],
   [52.58, 22.94],
@@ -65,51 +69,67 @@ function makePoints(count) {
   return { type: 'FeatureCollection', features };
 }
 
-async function run({ launch, baseUrl, style, query, withZoom }) {
+const tileCache = new Map();
+
+async function routeTiles(context, stats) {
+  await context.route(TILES, async (route) => {
+    const url = route.request().url();
+    const cached = tileCache.get(url);
+    if (cached) {
+      stats.replayed += 1;
+      await route.fulfill(cached);
+      return;
+    }
+    try {
+      const response = await route.fetch({ timeout: 300_000 });
+      const body = await response.body();
+      stats.downloaded += 1;
+      stats.bytes += body.length;
+      const entry = { status: response.status(), headers: response.headers(), body };
+      if (response.ok()) tileCache.set(url, entry);
+      await route.fulfill(entry);
+    } catch {
+      stats.failed += 1;
+      await route.abort();
+    }
+  });
+}
+
+async function run({ launch, baseUrl, query, screenshot }) {
   const browser = await chromium.launch(launch);
+  const network = { replayed: 0, downloaded: 0, bytes: 0, failed: 0 };
   try {
     const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+    await routeTiles(context, network);
     const page = await context.newPage();
-    const url = `${baseUrl}/map/clusters.html?${query}`;
-    const start = Date.now();
-    await page.goto(url);
+    await page.goto(`${baseUrl}/map/clusters.html?${query}`);
     const webgl = await probeWebgl(page);
-    await page.waitForFunction(() => window.__ready === true, null, { timeout: 180_000 });
+    await page.waitForFunction(() => window.__ready === true, null, { timeout: 600_000 });
     const metrics = await page.evaluate(() => window.__metrics);
     const result = {
       ok: true,
       webgl,
       pointCount: metrics.pointCount,
-      wallMs: Date.now() - start,
+      firstPaintMs: Math.round(metrics.firstPaint),
       firstClustersMs: Math.round(metrics.firstClusters),
       firstIdleMs: Math.round(metrics.firstIdle),
-      styleLoadedMs: Math.round(metrics.styleLoaded),
+      zooms: [],
     };
-    if (withZoom) {
-      result.zooms = [];
-      for (const zoom of ZOOM_STEPS) {
-        result.zooms.push(
-          await page.evaluate(([z, c]) => window.zoomAndMeasure(z, c), [zoom, DUBAI]),
-        );
-      }
-      result.animation = await page.evaluate(
-        ([c]) => window.animateAndMeasure(6, 11, c, 3000),
-        [DUBAI],
+    for (const zoom of ZOOM_STEPS) {
+      result.zooms.push(
+        await page.evaluate(([z, c]) => window.zoomAndMeasure(z, c), [zoom, DUBAI]),
       );
     }
+    result.animation = await page.evaluate(
+      ([c]) => window.animateAndMeasure(6, 11, c, 3000),
+      [DUBAI],
+    );
     result.errors = await page.evaluate(() => window.__errors);
-    if (style === 'liberty') await page.screenshot({ path: join(OUT, 'clusters.png') });
-
-    // Reload the same view with the HTTP cache filled: what is left is rendering, not the network.
-    const warm = await context.newPage();
-    await warm.goto(url);
-    await warm.waitForFunction(() => window.__ready === true, null, { timeout: 180_000 });
-    const warmMetrics = await warm.evaluate(() => window.__metrics);
-    result.warmFirstClustersMs = Math.round(warmMetrics.firstClusters);
-    result.warmFirstIdleMs = Math.round(warmMetrics.firstIdle);
+    result.network = network;
+    if (screenshot) await page.screenshot({ path: join(OUT, 'clusters.png') });
     return result;
   } catch (error) {
-    return { ok: false, error: String(error.message).split('\n')[0] };
+    return { ok: false, error: String(error.message).split('\n')[0], network };
   } finally {
     await browser.close();
   }
@@ -119,7 +139,6 @@ function summarise(runs) {
   const good = runs.filter((entry) => entry.ok);
   if (good.length === 0) return { runs: runs.length, ok: 0, error: runs[0]?.error };
   const zoomMedian = (key) =>
-    good[0].zooms &&
     ZOOM_STEPS.map((zoom, index) => ({
       zoom,
       ms: median(good.map((entry) => entry.zooms[index][key])),
@@ -128,14 +147,14 @@ function summarise(runs) {
     runs: runs.length,
     ok: good.length,
     renderer: good[0].webgl.renderer,
+    firstPaintMs: median(good.map((entry) => entry.firstPaintMs)),
     firstClustersMs: median(good.map((entry) => entry.firstClustersMs)),
     firstIdleMs: median(good.map((entry) => entry.firstIdleMs)),
-    warmFirstClustersMs: median(good.map((entry) => entry.warmFirstClustersMs)),
-    warmFirstIdleMs: median(good.map((entry) => entry.warmFirstIdleMs)),
     reclusterMs: zoomMedian('clustersReady'),
     idleAfterZoomMs: zoomMedian('idle'),
     animation: good[good.length - 1].animation,
-    errors: [...new Set(good.flatMap((entry) => entry.errors))],
+    network: good[good.length - 1].network,
+    errors: [...new Set(good.flatMap((entry) => entry.errors))].slice(0, 4),
   };
 }
 
@@ -144,12 +163,12 @@ writeFileSync(join(OUT, 'points.geojson'), JSON.stringify(points));
 
 const server = await startServer();
 const MODES = [
-  { name: 'headless-shell+swiftshader', launch: { headless: true, args: SWIFTSHADER } },
-  // A real browser with a real GPU, closer to what a broker's laptop does. Not available on a server.
+  { name: 'swiftshader', launch: { headless: true, args: SWIFTSHADER } },
+  // A real browser with a real GPU, closer to what a broker's laptop does. Not on a server.
   ...(process.platform === 'win32'
     ? [
         {
-          name: 'full-chromium-new-headless+gpu',
+          name: 'gpu',
           launch: {
             headless: true,
             channel: 'chromium',
@@ -160,22 +179,28 @@ const MODES = [
     : []),
 ];
 
+const LIBERTY_EARLY = 'style=liberty&addOn=style.load';
 const results = { points: points.features.length, seed: 20261106, modes: {} };
+
+// Live once, with the first mode: this records the tiles for every replay after it.
+const live = await run({
+  launch: MODES[0].launch,
+  baseUrl: server.url,
+  query: LIBERTY_EARLY,
+  screenshot: true,
+});
+console.log('live', JSON.stringify(live));
+results.live = summarise([live]);
+
 for (const mode of MODES) {
-  for (const [variant, style, query] of [
-    ['blank', 'blank', 'style=blank'],
-    ['liberty-add-on-load', 'liberty', 'style=liberty&addOn=load'],
-    ['liberty-add-on-style.load', 'liberty', 'style=liberty&addOn=style.load'],
+  for (const [variant, query] of [
+    ['blank-no-base-map', 'style=blank'],
+    ['replay-add-on-style.load', LIBERTY_EARLY],
+    ['replay-add-on-load', 'style=liberty&addOn=load'],
   ]) {
     const runs = [];
     for (let index = 0; index < RUNS; index += 1) {
-      const result = await run({
-        launch: mode.launch,
-        baseUrl: server.url,
-        style,
-        query,
-        withZoom: true,
-      });
+      const result = await run({ launch: mode.launch, baseUrl: server.url, query });
       runs.push(result);
       console.log(mode.name, variant, `run ${index + 1}`, JSON.stringify(result));
     }
@@ -183,6 +208,9 @@ for (const mode of MODES) {
   }
 }
 
-writeFileSync(join(OUT, `results-b-${process.platform}.json`), JSON.stringify(results, null, 2) + '\n');
+writeFileSync(
+  join(OUT, `results-b-${process.platform}.json`),
+  JSON.stringify(results, null, 2) + '\n',
+);
 console.log(JSON.stringify(results, null, 2));
 server.close();
