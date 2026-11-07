@@ -11,7 +11,9 @@
     "lint": "turbo run lint && prettier --check .",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "db:generate": "pnpm --filter @reih/contracts build && pnpm --filter @reih/api db:generate",
+    "db:migrate": "pnpm --filter @reih/contracts build && pnpm --filter @reih/api db:migrate"
   },
   "prettier": "@reih/config/prettier",
   "devDependencies": {

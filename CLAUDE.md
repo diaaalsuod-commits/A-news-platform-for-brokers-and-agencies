@@ -55,6 +55,8 @@ Rules:
 
 ## Data rules
 - Reference design: docs/design/schema.sql (36 tables). The Drizzle schema must produce the same database.
+- After pnpm db:generate, check that geography(...) types are not quoted in the new migration; drizzle-kit quotes them,
+  so remove the quotes before it is applied. apps/api/test/migrations.test.ts fails if any remain.
 - Money: AED in numeric(14,2); in TypeScript use decimal strings or decimal.js, never float math.
   Converted prices are display only; the AED price is always shown next to them (BR-03).
 - Areas in m²; ft² = m² × 10.7639 for display only (BR-04).

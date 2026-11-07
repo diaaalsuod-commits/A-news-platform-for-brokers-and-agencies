@@ -9,7 +9,9 @@
     "start": "node dist/main.js",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate"
   },
   "dependencies": {
     "@nestjs/common": "catalog:",
@@ -36,6 +38,7 @@
     "@types/node": "catalog:",
     "@types/pg": "catalog:",
     "@types/supertest": "catalog:",
+    "drizzle-kit": "catalog:",
     "eslint": "catalog:",
     "eslint-import-resolver-typescript": "catalog:",
     "eslint-plugin-boundaries": "catalog:",

@@ -2,7 +2,7 @@
 
 One box per FR and NFR in docs/srs.md (SRS v3.1). When you tick an ID, update its module counter and the total.
 
-**Total: 0 / 95 done** (78 FR: 64 Must, 14 Should; 17 NFR)
+**Total: 1 / 95 done** (78 FR: 64 Must, 14 Should; 17 NFR)
 
 ## ACC: Accounts and access
 
@@ -112,7 +112,7 @@ One box per FR and NFR in docs/srs.md (SRS v3.1). When you tick an ID, update it
 
 ## DAT: Content management
 
-**0 / 12 done** (10 Must, 2 Should)
+**1 / 12 done** (10 Must, 2 Should)
 
 - [ ] FR-DAT-01 (Must) Manage developers
 - [ ] FR-DAT-02 (Must) Manage sales contacts
@@ -122,7 +122,7 @@ One box per FR and NFR in docs/srs.md (SRS v3.1). When you tick an ID, update it
 - [ ] FR-DAT-06 (Must) Upload media and documents with source and license note
 - [ ] FR-DAT-07 (Must) Manage payment plans
 - [ ] FR-DAT-08 (Must) Manage units
-- [ ] FR-DAT-09 (Must) Permanent unit price and status history
+- [x] FR-DAT-09 (Must) Permanent unit price and status history
 - [ ] FR-DAT-10 (Must) Verify project, "Needs verification" list
 - [ ] FR-DAT-11 (Should) Upload community boundary as GeoJSON
 - [ ] FR-DAT-12 (Should) Import units from CSV or XLSX

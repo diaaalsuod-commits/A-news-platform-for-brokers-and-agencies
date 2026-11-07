@@ -8,3 +8,7 @@ Caddyfile
 **/.turbo/
 **/coverage/
 **/next-env.d.ts
+# Written by drizzle-kit.
+apps/api/drizzle/meta/
+# Throwaway experiments and their recorded output.
+spikes/

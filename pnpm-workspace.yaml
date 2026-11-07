@@ -19,6 +19,7 @@ catalog:
   '@types/react': ^19.0.0
   '@types/react-dom': ^19.0.0
   '@types/supertest': ^7.0.0
+  drizzle-kit: ^0.31.11
   drizzle-orm: ^0.45.4
   eslint: ^10.14.0
   eslint-import-resolver-typescript: ^4.4.5
@@ -51,6 +52,7 @@ allowBuilds:
   '@parcel/watcher': false
   '@swc/core': false
   cpu-features: false
+  esbuild: false
   protobufjs: false
   ssh2: false
 

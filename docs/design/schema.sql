@@ -587,8 +587,8 @@ ALTER TABLE catalog_items ADD CONSTRAINT catalog_items_project_id_fk FOREIGN KEY
 ALTER TABLE catalog_items ADD CONSTRAINT catalog_items_unit_id_fk FOREIGN KEY (unit_id) REFERENCES units (id) ON DELETE CASCADE;
 ALTER TABLE catalog_items ADD CONSTRAINT catalog_items_payment_plan_id_fk FOREIGN KEY (payment_plan_id) REFERENCES payment_plans (id) ON DELETE CASCADE;
 ALTER TABLE catalog_versions ADD CONSTRAINT catalog_versions_catalog_id_fk FOREIGN KEY (catalog_id) REFERENCES catalogs (id) ON DELETE CASCADE;
-ALTER TABLE catalog_versions ADD CONSTRAINT catalog_versions_exchange_rate_id_fk FOREIGN KEY (exchange_rate_id) REFERENCES exchange_rates (id) ON DELETE CASCADE;
-ALTER TABLE catalog_versions ADD CONSTRAINT catalog_versions_requested_by_fk FOREIGN KEY (requested_by) REFERENCES users (id) ON DELETE CASCADE;
+ALTER TABLE catalog_versions ADD CONSTRAINT catalog_versions_exchange_rate_id_fk FOREIGN KEY (exchange_rate_id) REFERENCES exchange_rates (id) ON DELETE RESTRICT;
+ALTER TABLE catalog_versions ADD CONSTRAINT catalog_versions_requested_by_fk FOREIGN KEY (requested_by) REFERENCES users (id) ON DELETE RESTRICT;
 ALTER TABLE favorites ADD CONSTRAINT favorites_user_id_fk FOREIGN KEY (user_id) REFERENCES users (id);
 ALTER TABLE favorites ADD CONSTRAINT favorites_project_id_fk FOREIGN KEY (project_id) REFERENCES projects (id);
 ALTER TABLE favorites ADD CONSTRAINT favorites_unit_id_fk FOREIGN KEY (unit_id) REFERENCES units (id);
