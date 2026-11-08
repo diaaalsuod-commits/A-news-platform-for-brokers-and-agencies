@@ -2,18 +2,6 @@
 export const MAX_FAILED_LOGINS = 5;
 export const LOCKOUT_MINUTES = 15;
 
-const FIFTEEN_MINUTES = 15 * 60;
-
-/**
- * NFR-08: the login rate limits, the one place their numbers live (docs/decisions.md). The SRS sets
- * none. The per-address limit is generous because a whole office may share one address; the
- * per-email limit counts every address submitted, whether or not an account has it.
- */
-export const LOGIN_RATE_LIMITS = {
-  perIp: { limit: 50, windowSeconds: FIFTEEN_MINUTES },
-  perEmail: { limit: 10, windowSeconds: FIFTEEN_MINUTES },
-} as const;
-
 export interface LoginAttemptState {
   failedLoginCount: number;
   lockedUntil: Date | null;

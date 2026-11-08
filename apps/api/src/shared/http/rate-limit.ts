@@ -101,6 +101,11 @@ export class RateLimitGuard implements CanActivate {
   }
 }
 
+/** The limits a route handler declares, for tests that check a route's settings. */
+export function rateLimitsOf(handler: (...args: never[]) => unknown): RateLimitOptions[] {
+  return (Reflect.getMetadata(RATE_LIMIT, handler) as RateLimitOptions[] | undefined) ?? [];
+}
+
 /**
  * Limits one route (NFR-08). The numbers come from the route, because the SRS sets none. Pass several
  * limits to count the same request against each, for example per address and per account.

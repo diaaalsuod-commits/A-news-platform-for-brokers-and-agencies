@@ -200,6 +200,9 @@ catalogs:
     '@testcontainers/postgresql':
       specifier: ^12.2.1
       version: 12.2.1
+    '@types/busboy':
+      specifier: ^1.5.4
+      version: 1.5.5
     '@types/express':
       specifier: ^5.0.6
       version: 5.0.6
@@ -227,6 +230,9 @@ catalogs:
     bullmq:
       specifier: ^6.7.1
       version: 6.7.1
+    busboy:
+      specifier: 1.6.0
+      version: 1.6.0
     decimal.js:
       specifier: ^10.6.0
       version: 10.6.0
@@ -361,6 +367,9 @@ importers:
       bullmq:
         specifier: 'catalog:'
         version: 6.7.1(ioredis@6.0.0(supports-color@7.2.0))(pg@8.23.1)
+      busboy:
+        specifier: 'catalog:'
+        version: 1.6.0
       decimal.js:
         specifier: 'catalog:'
         version: 10.6.0
@@ -416,6 +425,9 @@ importers:
       '@testcontainers/postgresql':
         specifier: 'catalog:'
         version: 12.2.1(bare-buffer@3.7.1)(supports-color@7.2.0)
+      '@types/busboy':
+        specifier: 'catalog:'
+        version: 1.5.5
       '@types/express':
         specifier: 'catalog:'
         version: 5.0.6
@@ -2411,6 +2423,9 @@ packages:
 
   '@types/body-parser@1.19.6':
     resolution: {integrity: sha512-HLFeCYgz89uk22N5Qg3dvGvsv46B8GLvKKo1zKG4NybA8U2DiEO3w9lqGg29t/tfLRJpJ6iQxnVw4OnB7MoM9g==}
+
+  '@types/busboy@1.5.5':
+    resolution: {integrity: sha512-IwqrfVFxWa23c4WeE7uZswssCqGfvnl5Q7b1pdshbT3HaQDa3UIbJx5BAxtcj9nZYX9tVDArM9TUv9SpvORbpQ==}
 
   '@types/chai@5.2.3':
     resolution: {integrity: sha512-Mw558oeA9fFbv65/y4mHtXDs9bPnFMZAL/jxdPFUpOHHIXX91mcgEHbS5Lahr+pwZFR8A7GQleRWeI6cGFC2UA==}
@@ -6195,6 +6210,10 @@ snapshots:
   '@types/body-parser@1.19.6':
     dependencies:
       '@types/connect': 3.4.38
+      '@types/node': 24.19.2
+
+  '@types/busboy@1.5.5':
+    dependencies:
       '@types/node': 24.19.2
 
   '@types/chai@5.2.3':

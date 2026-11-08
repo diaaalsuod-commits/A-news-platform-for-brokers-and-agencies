@@ -1,10 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { AreaUnit, LangCode, UserRole, UserStatus } from '@reih/contracts';
-import { eq } from 'drizzle-orm';
+import { and, eq, isNull, ne } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { DATABASE } from '../../../shared/database/index.js';
 import { afterFailedLogin } from '../domain/login-policy.js';
-import { users } from './identity.schema.js';
+import { sessions, users } from './identity.schema.js';
 
 export interface LoginCandidate {
   id: string;
@@ -13,6 +13,7 @@ export interface LoginCandidate {
   status: UserStatus;
   agencyId: string | null;
   lockedUntil: Date | null;
+  prefLanguage: LangCode;
 }
 
 export interface UserProfile {
@@ -28,6 +29,21 @@ export interface UserProfile {
   prefLanguage: LangCode;
   prefCurrency: string;
   prefAreaUnit: AreaUnit;
+  photoPath: string | null;
+}
+
+export interface ProfileChanges {
+  fullName?: string;
+  mobile?: string | null;
+  whatsapp?: string | null;
+  jobTitle?: string | null;
+  brn?: string | null;
+}
+
+export interface PreferenceChanges {
+  prefLanguage?: LangCode;
+  prefCurrency?: string;
+  prefAreaUnit?: AreaUnit;
 }
 
 @Injectable()
@@ -44,6 +60,7 @@ export class UserRepository {
         status: users.status,
         agencyId: users.agencyId,
         lockedUntil: users.lockedUntil,
+        prefLanguage: users.prefLanguage,
       })
       .from(users)
       .where(eq(users.email, email));
@@ -92,9 +109,75 @@ export class UserRepository {
         prefLanguage: users.prefLanguage,
         prefCurrency: users.prefCurrency,
         prefAreaUnit: users.prefAreaUnit,
+        photoPath: users.photoPath,
       })
       .from(users)
       .where(eq(users.id, userId));
     return row ?? null;
+  }
+
+  async findCredentials(
+    userId: string,
+  ): Promise<{ passwordHash: string | null; lockedUntil: Date | null } | null> {
+    const [row] = await this.db
+      .select({ passwordHash: users.passwordHash, lockedUntil: users.lockedUntil })
+      .from(users)
+      .where(eq(users.id, userId));
+    return row ?? null;
+  }
+
+  /**
+   * FR-ACC-03: a new password clears the failed attempts and the lock, and ends the user's sessions,
+   * all of them or all but the one that made the change, in the same transaction.
+   */
+  async changePassword(
+    userId: string,
+    passwordHash: string,
+    now: Date,
+    keepSessionId: string | null,
+  ): Promise<void> {
+    await this.db.transaction(async (tx) => {
+      await tx
+        .update(users)
+        .set({ passwordHash, failedLoginCount: 0, lockedUntil: null, updatedAt: now })
+        .where(eq(users.id, userId));
+      await tx
+        .update(sessions)
+        .set({ endedAt: now })
+        .where(
+          and(
+            eq(sessions.userId, userId),
+            isNull(sessions.endedAt),
+            keepSessionId === null ? undefined : ne(sessions.id, keepSessionId),
+          ),
+        );
+    });
+  }
+
+  async updateProfile(userId: string, changes: ProfileChanges, now: Date): Promise<void> {
+    await this.db
+      .update(users)
+      .set({ ...changes, updatedAt: now })
+      .where(eq(users.id, userId));
+  }
+
+  async updatePreferences(userId: string, changes: PreferenceChanges, now: Date): Promise<void> {
+    await this.db
+      .update(users)
+      .set({ ...changes, updatedAt: now })
+      .where(eq(users.id, userId));
+  }
+
+  /** Sets or clears the photo and returns the key it replaced, for the caller to remove. */
+  async replacePhoto(userId: string, photoPath: string | null, now: Date): Promise<string | null> {
+    return this.db.transaction(async (tx) => {
+      const [current] = await tx
+        .select({ photoPath: users.photoPath })
+        .from(users)
+        .where(eq(users.id, userId))
+        .for('update');
+      await tx.update(users).set({ photoPath, updatedAt: now }).where(eq(users.id, userId));
+      return current?.photoPath ?? null;
+    });
   }
 }

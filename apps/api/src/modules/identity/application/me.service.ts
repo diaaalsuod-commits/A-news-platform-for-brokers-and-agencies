@@ -4,6 +4,13 @@ import { AgencyService } from '../../agency/index.js';
 import { AppError } from '../../../shared/http/index.js';
 import { UserRepository } from '../infrastructure/user.repository.js';
 
+/** The photo's file name changes with every upload, so it versions the URL against stale caches. */
+export function photoUrl(photoPath: string | null): string | null {
+  if (photoPath === null) return null;
+  const version = photoPath.slice(photoPath.lastIndexOf('/') + 1).split('.')[0] ?? '';
+  return `/api/v1/me/photo?v=${encodeURIComponent(version)}`;
+}
+
 @Injectable()
 export class MeService {
   constructor(
@@ -27,6 +34,7 @@ export class MeService {
         whatsapp: profile.whatsapp,
         jobTitle: profile.jobTitle,
         brn: profile.brn,
+        photoUrl: photoUrl(profile.photoPath),
       },
       role: profile.role,
       agency,

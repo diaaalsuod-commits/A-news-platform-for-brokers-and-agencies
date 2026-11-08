@@ -18,6 +18,7 @@ function candidate(overrides: Partial<LoginCandidate> = {}): LoginCandidate {
     status: 'active' as UserStatus,
     agencyId: AGENCY_ID,
     lockedUntil: null,
+    prefLanguage: 'en',
     ...overrides,
   };
 }

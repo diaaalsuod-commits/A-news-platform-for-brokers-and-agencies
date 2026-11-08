@@ -34,11 +34,32 @@ export const LOG_REDACT_PATHS = [
   '*.newPassword',
 ] as const;
 
+/**
+ * Link tokens that travel in a URL path, today only GET /api/v1/auth/invitations/:token (FR-ACC-01).
+ * The logged URL keeps the route and loses the token.
+ */
+const TOKEN_IN_PATH = /(\/auth\/invitations\/)[^/?#]+/g;
+
+export function redactUrl(url: string): string {
+  return url.replace(TOKEN_IN_PATH, '$1[Redacted]');
+}
+
 export function buildPinoHttpOptions(env: Env): Options {
   return {
     level: env.LOG_LEVEL,
     genReqId: assignRequestId,
     redact: { paths: [...LOG_REDACT_PATHS], censor: '[Redacted]' },
+    // pino-http hands this the already serialized request. The params repeat the path's parts,
+    // a link token among them, so they are left out; the redacted URL already shows the route.
+    serializers: {
+      req: (req: { url?: string; params?: unknown }) => {
+        const { params: _params, ...logged } = req;
+        if (typeof logged.url === 'string') {
+          logged.url = redactUrl(logged.url);
+        }
+        return logged;
+      },
+    },
     ...(env.NODE_ENV === 'development' ? { transport: { target: 'pino-pretty' } } : {}),
   };
 }

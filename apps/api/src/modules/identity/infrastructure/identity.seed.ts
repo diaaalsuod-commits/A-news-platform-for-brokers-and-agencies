@@ -1,6 +1,6 @@
+import { isAcceptablePassword, MAX_PASSWORD_LENGTH, MIN_PASSWORD_LENGTH } from '@reih/contracts';
 import { eq, sql } from 'drizzle-orm';
 import { seedId, type SeedDb, SeedRefused } from '../../../shared/database/seed-helpers.js';
-import { isAcceptablePassword, MIN_PASSWORD_LENGTH } from '../domain/password-rules.js';
 import { users } from './identity.schema.js';
 import { hashPassword } from './password-hasher.js';
 
@@ -42,7 +42,7 @@ export async function createFirstPlatformAdmin(
   }
   if (!isAcceptablePassword(password)) {
     throw new SeedRefused(
-      `FIRST_ADMIN_PASSWORD must have at least ${MIN_PASSWORD_LENGTH} characters.`,
+      `FIRST_ADMIN_PASSWORD must have ${MIN_PASSWORD_LENGTH} to ${MAX_PASSWORD_LENGTH} characters.`,
     );
   }
 

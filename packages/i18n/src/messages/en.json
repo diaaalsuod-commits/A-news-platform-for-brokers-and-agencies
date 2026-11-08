@@ -17,7 +17,19 @@
     "FILE_TYPE_NOT_ALLOWED": "This file type is not allowed.",
     "TOO_MANY_REQUESTS": "Too many attempts. Please try again later.",
     "SERVICE_UNAVAILABLE": "The service is temporarily unavailable. Please try again shortly.",
-    "INTERNAL_ERROR": "Something went wrong on our side. Please try again."
+    "INTERNAL_ERROR": "Something went wrong on our side. Please try again.",
+    "EMAIL_ALREADY_REGISTERED": "This email already belongs to an account. It cannot be invited again.",
+    "INVITATION_PENDING": "This email already has a pending invitation. You can resend or cancel it.",
+    "INVITATION_NOT_FOUND": "This invitation link is not valid. Ask your administrator for a new invitation.",
+    "INVITATION_EXPIRED": "This invitation link has expired. Ask your administrator to send a new one.",
+    "INVITATION_CANCELLED": "This invitation was cancelled. Ask your administrator for a new invitation.",
+    "INVITATION_USED": "This invitation link has already been used. You can log in with your email and password.",
+    "TERMS_NOT_ACCEPTED": "Please accept the terms of use and the privacy policy to activate your account.",
+    "RESET_LINK_INVALID": "This password reset link is not valid. Please request a new one.",
+    "RESET_LINK_EXPIRED": "This password reset link has expired. Please request a new one.",
+    "RESET_LINK_USED": "This password reset link has already been used. Please request a new one if needed.",
+    "CURRENT_PASSWORD_INCORRECT": "The current password is incorrect.",
+    "CURRENCY_NOT_ENABLED": "This currency is not available. Please choose another one."
   },
   "email": {
     "invitation": {

@@ -1,11 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import {
-  afterFailedLogin,
-  isLocked,
-  LOCKOUT_MINUTES,
-  LOGIN_RATE_LIMITS,
-  MAX_FAILED_LOGINS,
-} from './login-policy.js';
+import { afterFailedLogin, isLocked, LOCKOUT_MINUTES, MAX_FAILED_LOGINS } from './login-policy.js';
+import { IDENTITY_RATE_LIMITS } from './rate-limits.js';
 
 const now = new Date('2026-11-08T10:00:00Z');
 const minutes = (n: number) => new Date(now.getTime() + n * 60_000);
@@ -36,7 +31,7 @@ describe('login policy', () => {
   });
 
   it('NFR-08 limits login to 50 per address and 10 per email in 15 minutes', () => {
-    expect(LOGIN_RATE_LIMITS).toEqual({
+    expect(IDENTITY_RATE_LIMITS.login).toEqual({
       perIp: { limit: 50, windowSeconds: 900 },
       perEmail: { limit: 10, windowSeconds: 900 },
     });

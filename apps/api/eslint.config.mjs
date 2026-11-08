@@ -62,6 +62,11 @@ export default [
               from: [{ element: { type: 'test' } }, { file: { categories: 'app' } }],
               allow: { to: { file: { categories: 'app' } } },
             },
+            // Tests share their setup, for example test/support/identity-app.ts.
+            {
+              from: { element: { type: 'test' } },
+              allow: { to: { element: { type: 'test' } } },
+            },
             {
               from: { element: { type: 'shared' } },
               disallow: { to: { element: { type: 'module' } } },

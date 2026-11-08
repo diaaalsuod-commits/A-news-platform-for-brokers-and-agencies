@@ -1,8 +1,6 @@
 import { z } from 'zod';
 import { areaUnitSchema, langCodeSchema, userRoleSchema } from './enums.js';
-
-/** Bounded so that a huge body cannot make the server hash megabytes (NFR-08). */
-export const MAX_PASSWORD_LENGTH = 1024;
+import { MAX_PASSWORD_LENGTH } from './password.js';
 
 /** FR-ACC-02: POST /api/v1/auth/login. */
 export const loginRequestSchema = z.object({
@@ -32,6 +30,8 @@ export const meResponseSchema = z.object({
     whatsapp: z.string().nullable(),
     jobTitle: z.string().nullable(),
     brn: z.string().nullable(),
+    /** GET /api/v1/me/photo with a version, so a new photo is not served from cache; null if none. */
+    photoUrl: z.string().nullable(),
   }),
   role: userRoleSchema,
   /** Null for staff (Data Operator, Platform Admin), who belong to no agency. */

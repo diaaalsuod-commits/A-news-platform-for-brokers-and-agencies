@@ -1,17 +1,25 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post, Req, Res } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Req, Res } from '@nestjs/common';
 import {
+  type ActivateRequest,
+  activateRequestSchema,
   type CsrfResponse,
+  type ForgotPasswordRequest,
+  forgotPasswordRequestSchema,
+  type InvitationCheckResponse,
   type LoginRequest,
   loginRequestSchema,
   type MeResponse,
+  type ResetPasswordRequest,
+  resetPasswordRequestSchema,
 } from '@reih/contracts';
 import type { Request, Response } from 'express';
-import { createHash } from 'node:crypto';
 import { Public, RateLimit, ZodValidationPipe } from '../../../shared/http/index.js';
+import { ActivationService } from '../application/activation.service.js';
 import { AuthService } from '../application/auth.service.js';
+import { PasswordService } from '../application/password.service.js';
 import { SessionService } from '../application/session.service.js';
 import { isWellFormedToken, newToken } from '../application/tokens.js';
-import { LOGIN_RATE_LIMITS } from '../domain/login-policy.js';
+import { IDENTITY_RATE_LIMITS as LIMITS } from '../domain/rate-limits.js';
 import {
   clearSessionCookie,
   CSRF_COOKIE,
@@ -20,22 +28,15 @@ import {
   setCsrfCookie,
   setSessionCookie,
 } from './auth-cookies.js';
-
-/**
- * Counted before validation, so the same normalisation as the login schema applies, and an unknown
- * email is counted exactly like a known one. Hashed, so Redis holds no email addresses.
- */
-function loginEmailKey(request: Request): string {
-  const email: unknown = (request.body as { email?: unknown } | undefined)?.email;
-  const normalised = typeof email === 'string' ? email.trim().toLowerCase() : '';
-  return createHash('sha256').update(normalised).digest('hex');
-}
+import { bodyTokenKey, emailKey, paramTokenKey } from './rate-limit-keys.js';
 
 @Controller('auth')
 export class AuthController {
   constructor(
     private readonly auth: AuthService,
     private readonly sessions: SessionService,
+    private readonly activation: ActivationService,
+    private readonly passwords: PasswordService,
   ) {}
 
   /** SRS 3.3. Keeps a well-formed token the browser already has, so other open tabs keep working. */
@@ -51,13 +52,8 @@ export class AuthController {
   /** UC-01.2, FR-ACC-02, BR-13. */
   @Public()
   @RateLimit(
-    { name: 'login-ip', ...LOGIN_RATE_LIMITS.perIp, whenRedisDown: 'allow' },
-    {
-      name: 'login-email',
-      ...LOGIN_RATE_LIMITS.perEmail,
-      whenRedisDown: 'allow',
-      key: loginEmailKey,
-    },
+    { name: 'login-ip', ...LIMITS.login.perIp, whenRedisDown: 'allow' },
+    { name: 'login-email', ...LIMITS.login.perEmail, whenRedisDown: 'allow', key: emailKey },
   )
   @Post('login')
   @HttpCode(HttpStatus.OK)
@@ -85,5 +81,66 @@ export class AuthController {
   ): Promise<void> {
     await this.sessions.end(readCookie(request, SESSION_COOKIE));
     clearSessionCookie(response);
+  }
+
+  /** FR-ACC-01: whether an invitation link still works. The logged URL hides the token. */
+  @Public()
+  @RateLimit(
+    { name: 'invitation-ip', ...LIMITS.invitation.perIp, whenRedisDown: 'reject' },
+    {
+      name: 'invitation-token',
+      ...LIMITS.invitation.perToken,
+      whenRedisDown: 'reject',
+      key: paramTokenKey,
+    },
+  )
+  @Get('invitations/:token')
+  checkInvitation(@Param('token') token: string): Promise<InvitationCheckResponse> {
+    return this.activation.check(token);
+  }
+
+  /** FR-ACC-01, UC-01.1. The user logs in afterwards. */
+  @Public()
+  @RateLimit(
+    { name: 'invitation-ip', ...LIMITS.invitation.perIp, whenRedisDown: 'reject' },
+    {
+      name: 'invitation-token',
+      ...LIMITS.invitation.perToken,
+      whenRedisDown: 'reject',
+      key: bodyTokenKey,
+    },
+  )
+  @Post('activate')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  activate(
+    @Body(new ZodValidationPipe(activateRequestSchema)) body: ActivateRequest,
+  ): Promise<void> {
+    return this.activation.activate(body);
+  }
+
+  /** FR-ACC-03: the same answer, in the same time, for known and unknown emails. */
+  @Public()
+  @RateLimit(
+    { name: 'forgot-ip', ...LIMITS.forgot.perIp, whenRedisDown: 'reject' },
+    { name: 'forgot-email', ...LIMITS.forgot.perEmail, whenRedisDown: 'reject', key: emailKey },
+  )
+  @Post('forgot')
+  @HttpCode(HttpStatus.ACCEPTED)
+  forgot(@Body(new ZodValidationPipe(forgotPasswordRequestSchema)) body: ForgotPasswordRequest) {
+    this.passwords.requestReset(body.email);
+  }
+
+  /** FR-ACC-03: a single-use link valid for 60 minutes. */
+  @Public()
+  @RateLimit(
+    { name: 'reset-ip', ...LIMITS.reset.perIp, whenRedisDown: 'reject' },
+    { name: 'reset-token', ...LIMITS.reset.perToken, whenRedisDown: 'reject', key: bodyTokenKey },
+  )
+  @Post('reset')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  reset(
+    @Body(new ZodValidationPipe(resetPasswordRequestSchema)) body: ResetPasswordRequest,
+  ): Promise<void> {
+    return this.passwords.reset(body.token, body.password);
   }
 }
