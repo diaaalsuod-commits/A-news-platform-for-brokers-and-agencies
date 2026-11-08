@@ -7,9 +7,10 @@ import {
   Logger,
 } from '@nestjs/common';
 import { messages } from '@reih/i18n';
-import type { Request, Response } from 'express';
+import type { Response } from 'express';
 import { localeFromAcceptLanguage } from '../localization/index.js';
 import { AppError, type ErrorCode } from './app-error.js';
+import type { RequestWithUser } from './request-user.js';
 
 const CODE_BY_STATUS: Partial<Record<number, ErrorCode>> = {
   [HttpStatus.BAD_REQUEST]: 'BAD_REQUEST',
@@ -29,10 +30,13 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
   catch(exception: unknown, host: ArgumentsHost): void {
     const http = host.switchToHttp();
-    const request = http.getRequest<Request>();
+    const request = http.getRequest<RequestWithUser>();
     const response = http.getResponse<Response>();
     const { code, status, details } = this.describe(exception);
 
+    if (status === HttpStatus.FORBIDDEN) {
+      this.logForbidden(request, code);
+    }
     if (response.headersSent) {
       response.end();
       return;
@@ -40,6 +44,19 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const language = localeFromAcceptLanguage(request.headers['accept-language']);
     response.status(status).json({
       error: { code, message: messages[language].errors[code], details },
+    });
+  }
+
+  /** FR-ACC-04: every refusal is logged with the user, the role and the route. Never the query string. */
+  private logForbidden(request: RequestWithUser, code: ErrorCode): void {
+    const route: unknown = (request.route as { path?: unknown } | undefined)?.path;
+    this.logger.warn({
+      msg: 'Request forbidden',
+      code,
+      userId: request.user?.id ?? null,
+      role: request.user?.role ?? null,
+      method: request.method,
+      route: typeof route === 'string' ? route : request.path,
     });
   }
 

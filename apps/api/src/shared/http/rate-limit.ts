@@ -70,37 +70,43 @@ export class RateLimitGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const options = this.reflector.get<RateLimitOptions>(RATE_LIMIT, context.getHandler());
+    const limits = this.reflector.get<RateLimitOptions[]>(RATE_LIMIT, context.getHandler());
     const http = context.switchToHttp();
     const request = http.getRequest<Request>();
-    const caller = options.key?.(request) ?? request.ip ?? 'unknown';
 
-    let result: Awaited<ReturnType<RateLimiter['consume']>>;
-    try {
-      result = await this.limiter.consume(
-        `${options.name}:${caller}`,
-        options.limit,
-        options.windowSeconds,
-      );
-    } catch (error) {
-      this.logger.warn(`Rate limit "${options.name}" could not reach Redis: ${String(error)}`);
-      if (options.whenRedisDown === 'allow') {
-        return true;
+    // Every limit must allow the request; the first that refuses decides the answer.
+    for (const options of limits) {
+      const caller = options.key?.(request) ?? request.ip ?? 'unknown';
+      let result: Awaited<ReturnType<RateLimiter['consume']>>;
+      try {
+        result = await this.limiter.consume(
+          `${options.name}:${caller}`,
+          options.limit,
+          options.windowSeconds,
+        );
+      } catch (error) {
+        this.logger.warn(`Rate limit "${options.name}" could not reach Redis: ${String(error)}`);
+        if (options.whenRedisDown === 'allow') {
+          continue;
+        }
+        throw new AppError('SERVICE_UNAVAILABLE', HttpStatus.SERVICE_UNAVAILABLE);
       }
-      throw new AppError('SERVICE_UNAVAILABLE', HttpStatus.SERVICE_UNAVAILABLE);
-    }
 
-    if (!result.allowed) {
-      http.getResponse<Response>().setHeader('Retry-After', result.retryAfterSeconds);
-      throw new AppError('TOO_MANY_REQUESTS', HttpStatus.TOO_MANY_REQUESTS);
+      if (!result.allowed) {
+        http.getResponse<Response>().setHeader('Retry-After', result.retryAfterSeconds);
+        throw new AppError('TOO_MANY_REQUESTS', HttpStatus.TOO_MANY_REQUESTS);
+      }
     }
     return true;
   }
 }
 
-/** Limits one route (NFR-08). The numbers come from the route, because the SRS sets none. */
-export const RateLimit = (options: RateLimitOptions) =>
-  applyDecorators(SetMetadata(RATE_LIMIT, options), UseGuards(RateLimitGuard));
+/**
+ * Limits one route (NFR-08). The numbers come from the route, because the SRS sets none. Pass several
+ * limits to count the same request against each, for example per address and per account.
+ */
+export const RateLimit = (...limits: [RateLimitOptions, ...RateLimitOptions[]]) =>
+  applyDecorators(SetMetadata(RATE_LIMIT, limits), UseGuards(RateLimitGuard));
 
 /** Global, because Nest resolves a route's guard from the module of its controller. */
 @Global()

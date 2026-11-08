@@ -15,11 +15,30 @@ export function assignRequestId(request: IncomingMessage, response: ServerRespon
   return id;
 }
 
+/**
+ * Never logged (NFR-08): the session and CSRF cookies and header, and any password in a body. pino-http
+ * logs no body today; the body paths guard a later change, and *.password covers any logged object.
+ */
+export const LOG_REDACT_PATHS = [
+  'req.headers.authorization',
+  'req.headers.cookie',
+  'req.headers["x-csrf-token"]',
+  'res.headers["set-cookie"]',
+  'req.body.password',
+  'req.body.currentPassword',
+  'req.body.newPassword',
+  'body.password',
+  'password',
+  '*.password',
+  '*.currentPassword',
+  '*.newPassword',
+] as const;
+
 export function buildPinoHttpOptions(env: Env): Options {
   return {
     level: env.LOG_LEVEL,
     genReqId: assignRequestId,
-    redact: ['req.headers.authorization', 'req.headers.cookie', 'res.headers["set-cookie"]'],
+    redact: { paths: [...LOG_REDACT_PATHS], censor: '[Redacted]' },
     ...(env.NODE_ENV === 'development' ? { transport: { target: 'pino-pretty' } } : {}),
   };
 }
