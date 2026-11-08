@@ -5,7 +5,7 @@ import { messages } from '@reih/i18n';
 import request from 'supertest';
 import { describe, expect, it, vi } from 'vitest';
 import { AgencyService } from '../src/modules/agency/index.js';
-import { Roles } from '../src/modules/identity/index.js';
+import { Roles } from '../src/shared/http/index.js';
 import { AgencySuspended, EventBus, MemberDeactivated } from '../src/shared/events/index.js';
 import { CSRF_COOKIE, PASSWORD, SESSION_COOKIE, useIdentityApp } from './support/identity-app.js';
 

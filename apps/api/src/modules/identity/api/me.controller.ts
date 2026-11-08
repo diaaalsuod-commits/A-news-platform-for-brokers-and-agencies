@@ -25,9 +25,11 @@ import {
 } from '@reih/contracts';
 import type { Request, Response } from 'express';
 import {
+  CurrentUser,
   RateLimit,
   readSingleFile,
   type RequestUser,
+  Roles,
   ZodValidationPipe,
 } from '../../../shared/http/index.js';
 import { AccountService } from '../application/account.service.js';
@@ -35,7 +37,6 @@ import { MeService } from '../application/me.service.js';
 import { PasswordService } from '../application/password.service.js';
 import { IDENTITY_RATE_LIMITS as LIMITS } from '../domain/rate-limits.js';
 import { userKey } from './rate-limit-keys.js';
-import { CurrentUser, Roles } from './roles.decorator.js';
 
 /** The caller's own account only: no route takes a user id, so nobody reaches another's (NFR-09). */
 @Roles('broker', 'agency_admin', 'data_operator', 'platform_admin')

@@ -2,18 +2,18 @@
 
 One box per FR and NFR in docs/srs.md (SRS v3.1). When you tick an ID, update its module counter and the total.
 
-**Total: 5 / 95 done** (78 FR: 64 Must, 14 Should; 17 NFR)
+**Total: 6 / 95 done** (78 FR: 64 Must, 14 Should; 17 NFR)
 
 ## ACC: Accounts and access
 
-**4 / 6 done** (6 Must, 0 Should)
+**5 / 6 done** (6 Must, 0 Should)
 
 - [x] FR-ACC-01 (Must) Activate account by invitation
 - [x] FR-ACC-02 (Must) Log in and log out, session timeout, account lockout
 - [x] FR-ACC-03 (Must) Password reset and password change
 - [x] FR-ACC-04 (Must) Enforce four roles on the server
 - [ ] FR-ACC-05 (Must) Manage profile — backend done; catalog check pending
-- [ ] FR-ACC-06 (Must) Choose language, display currency and area unit — backend done; RTL web test pending
+- [x] FR-ACC-06 (Must) Choose language, display currency and area unit
 
 ## AGY: Agency and team
 

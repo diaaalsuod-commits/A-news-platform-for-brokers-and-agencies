@@ -1,0 +1,10 @@
+{
+  "extends": "@reih/config/tsconfig/base.json",
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "noEmit": true,
+    "lib": ["ES2023", "DOM"]
+  },
+  "include": ["*.ts", "tests"]
+}

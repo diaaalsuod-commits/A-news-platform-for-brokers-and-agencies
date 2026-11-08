@@ -45,8 +45,8 @@ export const changePasswordRequestSchema = z.object({
 });
 export type ChangePasswordRequest = z.infer<typeof changePasswordRequestSchema>;
 
-/** International format, for example +971501234567 (E.164). */
-const phoneSchema = z
+/** FR-ACC-05: international format, for example +971501234567 (E.164). */
+export const phoneSchema = z
   .string()
   .trim()
   .regex(/^\+[1-9]\d{7,14}$/);

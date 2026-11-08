@@ -1,6 +1,6 @@
 import { localeDirection } from '@reih/i18n';
 import { fontClassName } from '@reih/ui/font';
-import { QueryProvider } from '@reih/ui/query-provider';
+import { AppProviders } from '@reih/ui/providers';
 import { routing } from '@reih/ui/routing';
 import '@reih/ui/styles.css';
 import { hasLocale, NextIntlClientProvider } from 'next-intl';
@@ -26,12 +26,16 @@ export default async function LocaleLayout({ children, params }: Props) {
     notFound();
   }
   setRequestLocale(locale);
+  // Public addresses of both apps, for the "no access" page (next.config.ts loads them).
+  const links = { broker: process.env.APP_URL ?? '', ops: process.env.OPS_URL ?? '' };
 
   return (
     <html lang={locale} dir={localeDirection(locale)} className={fontClassName}>
       <body>
         <NextIntlClientProvider>
-          <QueryProvider>{children}</QueryProvider>
+          <AppProviders app="broker" links={links}>
+            {children}
+          </AppProviders>
         </NextIntlClientProvider>
       </body>
     </html>

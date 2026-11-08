@@ -4,22 +4,28 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./api": "./src/api/index.ts",
+    "./app-config": "./src/app-config.ts",
     "./font": "./src/font.ts",
     "./health-panel": "./src/health-panel.tsx",
     "./i18n-request": "./src/i18n-request.ts",
-    "./language-switch": "./src/language-switch.tsx",
     "./navigation": "./src/navigation.ts",
-    "./query-provider": "./src/query-provider.tsx",
+    "./providers": "./src/api/hooks.tsx",
     "./routing": "./src/routing.ts",
+    "./screens": "./src/screens/index.ts",
     "./styles.css": "./src/styles.css"
   },
   "scripts": {
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
+    "@hookform/resolvers": "catalog:",
     "@reih/contracts": "workspace:*",
-    "@reih/i18n": "workspace:*"
+    "@reih/i18n": "workspace:*",
+    "react-hook-form": "catalog:",
+    "zod": "catalog:"
   },
   "peerDependencies": {
     "@tanstack/react-query": "catalog:",
@@ -36,6 +42,7 @@
     "next": "catalog:",
     "next-intl": "catalog:",
     "react": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }

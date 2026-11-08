@@ -14,5 +14,6 @@ export {
   RateLimiter,
   rateLimitsOf,
 } from './rate-limit.js';
+export { CurrentUser, Roles, ROLES } from './roles.decorator.js';
 export { ZodValidationPipe } from './zod-validation.pipe.js';
 export type { RequestUser, RequestWithUser } from './request-user.js';

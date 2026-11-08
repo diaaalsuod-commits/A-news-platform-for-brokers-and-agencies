@@ -17,7 +17,8 @@
     "db:seed": "pnpm --filter @reih/api... build && pnpm --filter @reih/api db:seed",
     "db:seed:admin": "pnpm --filter @reih/api... build && pnpm --filter @reih/api db:seed:admin",
     "db:seed:demo": "pnpm --filter @reih/api... build && pnpm --filter @reih/api db:seed:demo",
-    "db:seed:load": "pnpm --filter @reih/api... build && pnpm --filter @reih/api db:seed:load"
+    "db:seed:load": "pnpm --filter @reih/api... build && pnpm --filter @reih/api db:seed:load",
+    "e2e": "pnpm --filter @reih/e2e e2e"
   },
   "prettier": "@reih/config/prettier",
   "devDependencies": {

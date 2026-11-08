@@ -10,7 +10,11 @@
     "./tsconfig/base.json": "./tsconfig/base.json",
     "./tsconfig/library.json": "./tsconfig/library.json",
     "./tsconfig/nest.json": "./tsconfig/nest.json",
-    "./tsconfig/next.json": "./tsconfig/next.json"
+    "./tsconfig/next.json": "./tsconfig/next.json",
+    "./next/app-urls": {
+      "types": "./next/app-urls.d.mts",
+      "default": "./next/app-urls.mjs"
+    }
   },
   "dependencies": {
     "@eslint/js": "catalog:",

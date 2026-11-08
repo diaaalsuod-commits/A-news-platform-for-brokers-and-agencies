@@ -1,12 +1,13 @@
 import { createParamDecorator, type ExecutionContext, SetMetadata } from '@nestjs/common';
 import type { UserRole } from '@reih/contracts';
-import type { RequestUser, RequestWithUser } from '../../../shared/http/index.js';
+import type { RequestUser, RequestWithUser } from './request-user.js';
 
 export const ROLES = 'roles';
 
 /**
- * FR-ACC-04: the roles allowed on an endpoint. Every endpoint that is not @Public() must declare it;
- * one without it is refused. Allowing 'broker' also allows 'agency_admin'.
+ * FR-ACC-04: the roles allowed on an endpoint. Metadata only, like @Public(); identity's RolesGuard
+ * enforces it, so every module can declare roles without importing identity. Every endpoint that is not @Public()
+ * must declare it; one without it is refused. Allowing 'broker' also allows 'agency_admin'.
  */
 export const Roles = (...roles: [UserRole, ...UserRole[]]) => SetMetadata(ROLES, roles);
 

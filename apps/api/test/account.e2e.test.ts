@@ -1,7 +1,12 @@
 import { createHash, randomUUID } from 'node:crypto';
 import { existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
-import { invitationCheckResponseSchema, meResponseSchema, type UserRole } from '@reih/contracts';
+import {
+  currencyListResponseSchema,
+  invitationCheckResponseSchema,
+  meResponseSchema,
+  type UserRole,
+} from '@reih/contracts';
 import { messages } from '@reih/i18n';
 import request from 'supertest';
 import { beforeAll, describe, expect, it } from 'vitest';
@@ -776,6 +781,41 @@ describe('identity: invitations, activation, password, profile and preferences',
         currency: 'AED',
         areaUnit: 'sqft',
       });
+    });
+
+    it('FR-ACC-06 GET /currencies lists the enabled currencies, AED first, for every role', async () => {
+      for (const role of ['broker', 'agency_admin', 'data_operator', 'platform_admin'] as const) {
+        const user = await createUser({ role });
+        const response = await get('/currencies', await sessionFor(user.email));
+        expect(response.status, role).toBe(200);
+        expect(currencyListResponseSchema.parse(response.body)).toEqual({
+          items: [
+            { code: 'AED', symbol: 'د.إ', nameAr: 'درهم إماراتي', nameEn: 'UAE Dirham' },
+            { code: 'USD', symbol: '$', nameAr: 'دولار أمريكي', nameEn: 'US Dollar' },
+          ],
+          total: 2,
+          page: 1,
+          pageSize: 20,
+        });
+      }
+    });
+
+    it('FR-ACC-06 GET /currencies pages with ?page&pageSize, at most 100', async () => {
+      const session = await sessionFor((await createUser()).email);
+      const second = await get('/currencies?page=2&pageSize=1', session).expect(200);
+      expect(second.body).toEqual({
+        items: [{ code: 'USD', symbol: '$', nameAr: 'دولار أمريكي', nameEn: 'US Dollar' }],
+        total: 2,
+        page: 2,
+        pageSize: 1,
+      });
+      expect(errorOf(await get('/currencies?pageSize=101', session).expect(400))).toBe(
+        'VALIDATION_FAILED',
+      );
+    });
+
+    it('NFR-09 GET /currencies needs a session', async () => {
+      expect(errorOf(await get('/currencies').expect(401))).toBe('UNAUTHORIZED');
     });
 
     it('FR-ACC-06 a currency that is not enabled is refused', async () => {

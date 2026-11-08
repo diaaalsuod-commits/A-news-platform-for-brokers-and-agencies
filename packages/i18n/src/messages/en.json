@@ -76,5 +76,162 @@
       "up": "Up",
       "down": "Down"
     }
+  },
+  "clientErrors": {
+    "NETWORK_ERROR": "The server could not be reached. Check your connection and try again.",
+    "TOO_MANY_REQUESTS_RETRY": "Too many attempts. Please try again in <ltr>{minutes}</ltr> minutes."
+  },
+  "validation": {
+    "required": "This field is required.",
+    "tooShort": "Use at least <ltr>{min}</ltr> characters.",
+    "tooLong": "Use at most <ltr>{max}</ltr> characters.",
+    "email": "Enter a valid email address.",
+    "invalidFormat": "This value is not in the expected format.",
+    "invalidChoice": "Choose one of the options.",
+    "passwordsDontMatch": "The two passwords do not match.",
+    "termsRequired": "Accept the terms of use and the privacy policy to continue.",
+    "summary": "Please correct the fields marked below."
+  },
+  "nav": {
+    "skipToContent": "Skip to content",
+    "main": "Main",
+    "home": "Home",
+    "profile": "Profile",
+    "logout": "Log out",
+    "loggingOut": "Logging out…"
+  },
+  "roles": {
+    "broker": "Broker",
+    "agency_admin": "Agency Admin",
+    "data_operator": "Data Operator",
+    "platform_admin": "Platform Admin"
+  },
+  "state": {
+    "loading": "Loading…",
+    "retry": "Try again",
+    "checkingSession": "Checking your session…",
+    "loadError": "This page could not be loaded."
+  },
+  "auth": {
+    "login": {
+      "title": "Log in",
+      "email": "Email",
+      "password": "Password",
+      "submit": "Log in",
+      "submitting": "Logging in…",
+      "forgot": "Forgot your password?",
+      "activated": "Your account is active. You can log in now.",
+      "reset": "Your password was changed. Log in with the new password."
+    },
+    "forgot": {
+      "title": "Forgot password",
+      "intro": "Enter your email and we will send you a link to choose a new password.",
+      "email": "Email",
+      "submit": "Send the link",
+      "submitting": "Sending…",
+      "sent": "If an account exists for this email, we have sent a link to it. The link is valid for <ltr>60</ltr> minutes and can be used once.",
+      "backToLogin": "Back to log in"
+    },
+    "activate": {
+      "title": "Activate your account",
+      "checking": "Checking your invitation…",
+      "missingToken": "This page needs the link from your invitation email. Open the link from the email again.",
+      "invitedAs": "You are invited as <strong>{role}</strong> with the email <ltr>{email}</ltr>.",
+      "expires": "This link is valid until <ltr>{date}</ltr>.",
+      "password": "Password",
+      "confirmPassword": "Repeat the password",
+      "passwordHint": "At least <ltr>10</ltr> characters.",
+      "acceptTerms": "I have read and accept the terms of use and the privacy policy (version <ltr>{version}</ltr>).",
+      "submit": "Activate account",
+      "submitting": "Activating…"
+    },
+    "reset": {
+      "title": "Choose a new password",
+      "missingToken": "This page needs the link from your password reset email. Open the link from the email again, or request a new one.",
+      "password": "New password",
+      "confirmPassword": "Repeat the new password",
+      "passwordHint": "At least <ltr>10</ltr> characters.",
+      "submit": "Save the new password",
+      "submitting": "Saving…",
+      "requestNew": "Request a new link"
+    }
+  },
+  "noAccess": {
+    "title": "No access to this app",
+    "body": "Your account works in <app>{name}</app>. Open it there to continue.",
+    "action": "Open <app>{name}</app>",
+    "backToLogin": "Back to log in"
+  },
+  "home": {
+    "welcome": "Welcome, {name}",
+    "welcomeNoName": "Welcome",
+    "signedInAs": "Signed in as <ltr>{email}</ltr> · {role}"
+  },
+  "profile": {
+    "title": "Profile and preferences",
+    "details": {
+      "title": "Profile",
+      "fullName": "Full name",
+      "mobile": "Mobile",
+      "whatsapp": "WhatsApp",
+      "phoneHint": "International format, for example <ltr>+971501234567</ltr>. Leave empty if none.",
+      "jobTitle": "Job title",
+      "brn": "BRN (broker registration number)",
+      "optional": "Optional.",
+      "submit": "Save profile",
+      "submitting": "Saving…",
+      "saved": "Your profile was saved."
+    },
+    "photo": {
+      "title": "Photo",
+      "alt": "Your profile photo",
+      "none": "No photo yet.",
+      "choose": "Choose a photo",
+      "hint": "JPEG or PNG, up to <ltr>2</ltr> MB.",
+      "upload": "Upload photo",
+      "uploading": "Uploading…",
+      "remove": "Remove photo",
+      "removing": "Removing…",
+      "saved": "Your photo was saved.",
+      "removed": "Your photo was removed.",
+      "noFile": "Choose a file first."
+    },
+    "preferences": {
+      "title": "Preferences",
+      "language": "Language",
+      "currency": "Display currency",
+      "currencyHint": "Prices are always shown in AED as well.",
+      "currenciesEmpty": "No display currencies are available yet.",
+      "currenciesError": "The currencies could not be loaded.",
+      "areaUnit": "Area unit",
+      "areaUnits": {
+        "sqm": "Square metres (m²)",
+        "sqft": "Square feet (ft²)"
+      },
+      "submit": "Save preferences",
+      "submitting": "Saving…",
+      "saved": "Your preferences were saved."
+    },
+    "password": {
+      "title": "Change password",
+      "current": "Current password",
+      "new": "New password",
+      "confirm": "Repeat the new password",
+      "hint": "At least <ltr>10</ltr> characters. Your other sessions will be ended.",
+      "submit": "Change password",
+      "submitting": "Changing…",
+      "changed": "Your password was changed. Your other sessions were ended."
+    }
+  },
+  "legal": {
+    "termsTitle": "Terms of use",
+    "privacyTitle": "Privacy policy",
+    "missing": "The terms for version <ltr>{version}</ltr> are not available in this app yet, so the account cannot be activated. Please contact your administrator.",
+    "versions": {
+      "1_0": {
+        "terms": "PLACEHOLDER — not legal text. The REIH terms of use, version 1.0, will appear here before delivery. They will cover who may use the platform, how project data may be used with clients, and the user's duties for their account.",
+        "privacy": "PLACEHOLDER — not legal text. The REIH privacy policy, version 1.0, will appear here before delivery. It will explain which personal data REIH keeps, why, for how long, and how to ask for a copy or a correction."
+      }
+    }
   }
 }

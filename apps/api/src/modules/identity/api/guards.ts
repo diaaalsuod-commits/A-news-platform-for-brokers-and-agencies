@@ -8,12 +8,11 @@ import {
 import { Reflector } from '@nestjs/core';
 import { csrfHeaderName, type UserRole } from '@reih/contracts';
 import type { Response } from 'express';
-import { AppError, IS_PUBLIC, type RequestWithUser } from '../../../shared/http/index.js';
+import { AppError, IS_PUBLIC, type RequestWithUser, ROLES } from '../../../shared/http/index.js';
 import { SessionService } from '../application/session.service.js';
 import { isWellFormedToken, tokensMatch } from '../application/tokens.js';
 import { hasRequiredRole } from '../domain/roles.js';
 import { clearSessionCookie, CSRF_COOKIE, readCookie, SESSION_COOKIE } from './auth-cookies.js';
-import { ROLES } from './roles.decorator.js';
 
 const isPublic = (reflector: Reflector, context: ExecutionContext): boolean =>
   reflector.getAllAndOverride<boolean>(IS_PUBLIC, [context.getHandler(), context.getClass()]) ===
