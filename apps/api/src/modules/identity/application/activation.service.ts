@@ -4,12 +4,12 @@ import {
   type InvitationCheckResponse,
   linkTokenSchema,
 } from '@reih/contracts';
-import { SettingsReader } from '../../admin/index.js';
 import { AppError, type ErrorCode } from '../../../shared/http/index.js';
 import type { LinkState } from '../domain/link-policy.js';
 import { InvitationRepository, invitationState } from '../infrastructure/invitation.repository.js';
 import { hashPassword } from '../infrastructure/password-hasher.js';
 import { hashToken } from './tokens.js';
+import { IdentitySettingsPort } from './ports.js';
 
 /** FR-ACC-01: a refused link names why, so the person knows what to ask for. */
 const REFUSAL: Record<Exclude<LinkState, 'pending'> | 'not_found', [ErrorCode, number]> = {
@@ -27,7 +27,7 @@ const refuse = (state: Exclude<LinkState, 'pending'> | 'not_found') =>
 export class ActivationService {
   constructor(
     private readonly invitations: InvitationRepository,
-    private readonly settings: SettingsReader,
+    private readonly settings: IdentitySettingsPort,
   ) {}
 
   /** GET /auth/invitations/:token: whether the link still works, and what the page shows. */

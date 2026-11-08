@@ -1,6 +1,5 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import type { LoginRequest, MeResponse } from '@reih/contracts';
-import { AgencyService } from '../../agency/index.js';
 import { AppError } from '../../../shared/http/index.js';
 import { isLocked } from '../domain/login-policy.js';
 import { isAgencyRole } from '../domain/roles.js';
@@ -8,6 +7,7 @@ import { PasswordHasher } from '../infrastructure/password-hasher.js';
 import { type LoginCandidate, UserRepository } from '../infrastructure/user.repository.js';
 import { MeService } from './me.service.js';
 import { SessionService } from './session.service.js';
+import { AgencyStatusPort } from './ports.js';
 
 export interface LoginContext {
   ipAddress: string | null;
@@ -27,7 +27,7 @@ export class AuthService {
   constructor(
     private readonly users: UserRepository,
     private readonly hasher: PasswordHasher,
-    private readonly agencies: AgencyService,
+    private readonly agencies: AgencyStatusPort,
     private readonly sessions: SessionService,
     private readonly me: MeService,
   ) {}

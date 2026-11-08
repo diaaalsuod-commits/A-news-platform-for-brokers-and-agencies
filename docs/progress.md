@@ -105,7 +105,7 @@ One box per FR and NFR in docs/srs.md (SRS v3.1). When you tick an ID, update it
 
 **0 / 4 done** (4 Must, 0 Should)
 
-- [ ] FR-LOC-01 (Must) Prices in AED, converted display beside AED
+- [ ] FR-LOC-01 (Must) Prices in AED, converted display beside AED — rates and AED fallback done; price display pending
 - [ ] FR-LOC-02 (Must) Areas in m² or ft²
 - [ ] FR-LOC-03 (Must) Arabic and English names, with fallback
 - [ ] FR-LOC-04 (Must) UAE as the only market, every area keeps its country
@@ -131,12 +131,12 @@ One box per FR and NFR in docs/srs.md (SRS v3.1). When you tick an ID, update it
 
 **0 / 10 done** (6 Must, 4 Should)
 
-- [ ] FR-ADM-01 (Must) Manage agencies, first Agency Admin invitation
-- [ ] FR-ADM-02 (Must) Suspend or reactivate agency
-- [ ] FR-ADM-03 (Must) Manage staff accounts and invitations
-- [ ] FR-ADM-04 (Must) Manage reference data
-- [ ] FR-ADM-05 (Must) Display currencies and dated exchange rates
-- [ ] FR-ADM-06 (Must) Settings: stale threshold, invitation validity, reveal limit
+- [ ] FR-ADM-01 (Must) Manage agencies, first Agency Admin invitation — backend done; ops-web screen pending
+- [ ] FR-ADM-02 (Must) Suspend or reactivate agency — backend done; ops-web screen pending
+- [ ] FR-ADM-03 (Must) Manage staff accounts and invitations — backend done; ops-web screen pending
+- [ ] FR-ADM-04 (Must) Manage reference data — backend done; ops-web screen and content forms pending
+- [ ] FR-ADM-05 (Must) Display currencies and dated exchange rates — backend done; ops-web screen and catalog rate pending
+- [ ] FR-ADM-06 (Must) Settings: stale threshold, invitation validity, reveal limit — backend done; ops-web screen pending
 - [ ] FR-ADM-07 (Should) Review reveal log
 - [ ] FR-ADM-08 (Should) Audit log of administrative actions
 - [ ] FR-ADM-09 (Should) Member limit per agency

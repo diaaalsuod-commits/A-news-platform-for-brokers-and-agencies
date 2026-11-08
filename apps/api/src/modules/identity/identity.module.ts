@@ -1,7 +1,5 @@
 import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
-import { AdminModule } from '../admin/index.js';
-import { AgencyModule } from '../agency/index.js';
 import { DatabaseModule } from '../../shared/database/index.js';
 import { FilesModule } from '../../shared/files/index.js';
 import { MailModule } from '../../shared/mail/index.js';
@@ -17,22 +15,25 @@ import { MeService } from './application/me.service.js';
 import { PasswordService } from './application/password.service.js';
 import { SessionTerminationListener } from './application/session-termination.listener.js';
 import { SessionService } from './application/session.service.js';
+import { UserDirectory } from './application/user-directory.js';
 import { InvitationRepository } from './infrastructure/invitation.repository.js';
 import { PasswordHasher } from './infrastructure/password-hasher.js';
 import { PasswordResetRepository } from './infrastructure/password-reset.repository.js';
 import { SessionRepository } from './infrastructure/session.repository.js';
+import { StaffRepository } from './infrastructure/staff.repository.js';
 import { UserRepository } from './infrastructure/user.repository.js';
 
 @Module({
-  // docs/decisions.md: identity -> agency and identity -> admin now; agency -> identity is planned
-  // for UC-04.7.
-  imports: [DatabaseModule, MailModule, FilesModule, AgencyModule, AdminModule],
+  // identity imports no other module. What it needs from agency and admin comes through the ports in
+  // application/ports.ts, bound in src/identity-ports.module.ts (docs/decisions.md, P3.1).
+  imports: [DatabaseModule, MailModule, FilesModule],
   controllers: [AuthController, MeController],
   providers: [
     UserRepository,
     SessionRepository,
     InvitationRepository,
     PasswordResetRepository,
+    StaffRepository,
     PasswordHasher,
     AccountLinks,
     SessionService,
@@ -42,12 +43,13 @@ import { UserRepository } from './infrastructure/user.repository.js';
     InvitationService,
     PasswordService,
     AccountService,
+    UserDirectory,
     SessionTerminationListener,
     // Global guards run in this order: session, then CSRF, then role.
     { provide: APP_GUARD, useClass: AuthGuard },
     { provide: APP_GUARD, useClass: CsrfGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
   ],
-  exports: [InvitationService],
+  exports: [InvitationService, UserDirectory],
 })
 export class IdentityModule {}

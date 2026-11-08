@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { areaUnitSchema, langCodeSchema, userRoleSchema } from './enums.js';
 import { MAX_PASSWORD_LENGTH, passwordSchema } from './password.js';
 
-const emailSchema = z.string().trim().toLowerCase().pipe(z.email());
+export const emailSchema = z.string().trim().toLowerCase().pipe(z.email());
 
 /** A link token: 32 random bytes in base64url. Anything else cannot be a token. */
 export const linkTokenSchema = z.string().regex(/^[A-Za-z0-9_-]{43}$/);

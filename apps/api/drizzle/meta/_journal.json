@@ -22,6 +22,13 @@
       "when": 1794032157335,
       "tag": "0002_business_rules",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1794144609533,
+      "tag": "0003_reference_restrict",
+      "breakpoints": true
     }
   ]
 }

@@ -29,7 +29,23 @@
     "RESET_LINK_EXPIRED": "This password reset link has expired. Please request a new one.",
     "RESET_LINK_USED": "This password reset link has already been used. Please request a new one if needed.",
     "CURRENT_PASSWORD_INCORRECT": "The current password is incorrect.",
-    "CURRENCY_NOT_ENABLED": "This currency is not available. Please choose another one."
+    "CURRENCY_NOT_ENABLED": "This currency is not available. Please choose another one.",
+    "TRADE_LICENSE_TAKEN": "Another agency already has this trade license number.",
+    "AGENCY_ALREADY_SUSPENDED": "This agency is already suspended.",
+    "AGENCY_ALREADY_ACTIVE": "This agency is already active.",
+    "AGENCY_SUSPENDED": "This agency is suspended. Reactivate it before inviting anyone to it.",
+    "CANNOT_DEACTIVATE_SELF": "You cannot deactivate your own account.",
+    "CANNOT_CHANGE_OWN_ROLE": "You cannot change your own role.",
+    "LAST_PLATFORM_ADMIN": "At least one active Platform Admin must remain. This change would leave none.",
+    "USER_NOT_ACTIVATED": "This user has not activated the account. Resend or cancel the invitation instead.",
+    "USER_ALREADY_ACTIVE": "This user is already active.",
+    "USER_ALREADY_DEACTIVATED": "This user is already deactivated.",
+    "CODE_TAKEN": "Another item already uses this code.",
+    "REFERENCE_IN_USE": "This item is in use and cannot be deleted. Deactivate it instead.",
+    "AMENITY_CATEGORY_INACTIVE": "This amenity category is not active. Choose an active category.",
+    "AED_FIXED": "AED is always enabled and has no exchange rate.",
+    "CURRENCY_HAS_NO_RATE": "Enter an exchange rate for this currency before enabling it.",
+    "RATE_DATE_IN_FUTURE": "The rate date cannot be later than today (UAE time)."
   },
   "email": {
     "invitation": {

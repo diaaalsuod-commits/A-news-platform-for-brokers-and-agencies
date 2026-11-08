@@ -1,7 +1,7 @@
 import type { MeResponse, UserRole, UserStatus } from '@reih/contracts';
 import { describe, expect, it, vi } from 'vitest';
 import { AppError } from '../../../shared/http/index.js';
-import type { AgencyService } from '../../agency/index.js';
+import type { AgencyStatusPort } from './ports.js';
 import type { PasswordHasher } from '../infrastructure/password-hasher.js';
 import type { LoginCandidate, UserRepository } from '../infrastructure/user.repository.js';
 import { AuthService } from './auth.service.js';
@@ -40,7 +40,7 @@ function service(options: {
       verify: async () => options.passwordValid ?? true,
       verifyNothing: async () => undefined,
     } as unknown as PasswordHasher,
-    { isActive: async () => options.agencyActive ?? true } as unknown as AgencyService,
+    { isActive: async () => options.agencyActive ?? true } as unknown as AgencyStatusPort,
     { start, end: vi.fn(async () => undefined) } as unknown as SessionService,
     { get: async () => ({}) as MeResponse } as unknown as MeService,
   );

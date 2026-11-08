@@ -2,10 +2,11 @@ export class AgencySuspended {
   constructor(readonly agencyId: string) {}
 }
 
+/** A member or a staff account was deactivated (FR-AGY-04, FR-ADM-03). Staff have no agency. */
 export class MemberDeactivated {
   constructor(
     readonly userId: string,
-    readonly agencyId: string,
+    readonly agencyId: string | null,
   ) {}
 }
 

@@ -16,4 +16,11 @@ describe('migration files', () => {
     );
     expect(offenders).toEqual([]);
   });
+
+  // An amenity or a unit tag in use must refuse deletion instead of silently losing its links.
+  it('FR-ADM-04 migration 0003 makes the amenity and unit tag links restrict a delete', () => {
+    const sql = readFileSync(join(MIGRATIONS, '0003_reference_restrict.sql'), 'utf8');
+    expect(sql).toMatch(/"project_amenities_amenity_id_fk"[^;]*ON DELETE restrict/);
+    expect(sql).toMatch(/"unit_tag_links_unit_tag_id_fk"[^;]*ON DELETE restrict/);
+  });
 });

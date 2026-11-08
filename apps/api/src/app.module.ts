@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { LoggerModule } from 'nestjs-pino';
+import { IdentityPortsModule } from './identity-ports.module.js';
 import { AdminModule } from './modules/admin/index.js';
 import { AgencyModule } from './modules/agency/index.js';
 import { CatalogModule } from './modules/catalog/index.js';
@@ -36,6 +37,7 @@ import {
     HttpModule,
     AuditModule,
     IdentityModule,
+    IdentityPortsModule,
     AgencyModule,
     AdminModule,
     ContentModule,

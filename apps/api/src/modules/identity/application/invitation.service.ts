@@ -1,7 +1,6 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import type { LangCode, UserRole } from '@reih/contracts';
-import { SettingsReader } from '../../admin/index.js';
-import { AgencyService } from '../../agency/index.js';
+import { isUniqueViolation } from '../../../shared/database/index.js';
 import { AppError } from '../../../shared/http/index.js';
 import { MailService } from '../../../shared/mail/index.js';
 import {
@@ -17,20 +16,12 @@ import {
 } from '../infrastructure/invitation.repository.js';
 import { UserRepository } from '../infrastructure/user.repository.js';
 import { AccountLinks } from './account-links.js';
+import { AgencyStatusPort, IdentitySettingsPort } from './ports.js';
 import { hashToken, newToken } from './tokens.js';
 
 export interface InviteResult {
   invitationId: string;
   userId: string;
-}
-
-const UNIQUE_VIOLATION = '23505';
-
-function isUniqueViolation(error: unknown): boolean {
-  const candidates = [error, (error as { cause?: unknown } | null)?.cause];
-  return candidates.some(
-    (candidate) => (candidate as { code?: unknown } | null)?.code === UNIQUE_VIOLATION,
-  );
 }
 
 /**
@@ -42,8 +33,8 @@ export class InvitationService {
   constructor(
     private readonly invitations: InvitationRepository,
     private readonly users: UserRepository,
-    private readonly settings: SettingsReader,
-    private readonly agencies: AgencyService,
+    private readonly settings: IdentitySettingsPort,
+    private readonly agencies: AgencyStatusPort,
     private readonly mail: MailService,
     private readonly links: AccountLinks,
   ) {}

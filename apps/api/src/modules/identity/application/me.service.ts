@@ -1,8 +1,11 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import type { MeResponse } from '@reih/contracts';
-import { AgencyService } from '../../agency/index.js';
 import { AppError } from '../../../shared/http/index.js';
 import { UserRepository } from '../infrastructure/user.repository.js';
+import { AgencyStatusPort, CurrencyPolicyPort } from './ports.js';
+
+/** Prices are stored in AED, which is always enabled (BR-03, FR-ADM-05). */
+const BASE_CURRENCY = 'AED';
 
 /** The photo's file name changes with every upload, so it versions the URL against stale caches. */
 export function photoUrl(photoPath: string | null): string | null {
@@ -15,7 +18,8 @@ export function photoUrl(photoPath: string | null): string | null {
 export class MeService {
   constructor(
     private readonly users: UserRepository,
-    private readonly agencies: AgencyService,
+    private readonly agencies: AgencyStatusPort,
+    private readonly currencies: CurrencyPolicyPort,
   ) {}
 
   /** The caller's own account: user, role, agency and preferences. */
@@ -24,7 +28,10 @@ export class MeService {
     if (!profile) {
       throw new AppError('UNAUTHORIZED', HttpStatus.UNAUTHORIZED);
     }
-    const agency = profile.agencyId ? await this.agencies.getSummary(profile.agencyId) : null;
+    const [agency, currency] = await Promise.all([
+      profile.agencyId ? this.agencies.getSummary(profile.agencyId) : null,
+      this.displayCurrency(profile.prefCurrency),
+    ]);
     return {
       user: {
         id: profile.id,
@@ -40,9 +47,18 @@ export class MeService {
       agency,
       preferences: {
         language: profile.prefLanguage,
-        currency: profile.prefCurrency,
+        currency,
         areaUnit: profile.prefAreaUnit,
       },
     };
+  }
+
+  /**
+   * FR-LOC-01: a saved currency that the Platform Admin has since disabled is kept, but AED is shown
+   * until it is enabled again (docs/decisions.md, P3.1).
+   */
+  private async displayCurrency(saved: string): Promise<string> {
+    if (saved === BASE_CURRENCY) return saved;
+    return (await this.currencies.isEnabledCurrency(saved)) ? saved : BASE_CURRENCY;
   }
 }

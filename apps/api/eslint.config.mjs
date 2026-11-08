@@ -5,6 +5,10 @@ const RULE_1 = 'CLAUDE.md rule 1: a module may import another module only throug
 const RULE_3 =
   'CLAUDE.md rule 3: domain/ is pure TypeScript and may not import @nestjs/*, drizzle-orm or infrastructure/.';
 const RULE_5 = 'CLAUDE.md rule 5: shared/ may not import a module.';
+const ONE_WAY_IDENTITY =
+  'docs/decisions.md (P3.1): identity imports no other module; it reaches them through its ports, bound in src/identity-ports.module.ts.';
+const ONE_WAY_AGENCY =
+  'docs/decisions.md (P3.1): agency may not import admin; admin imports agency.';
 
 export default [
   ...base,
@@ -81,6 +85,17 @@ export default [
                 ],
               },
               message: RULE_3,
+            },
+            // The module graph runs one way: admin -> agency -> identity (test/module-graph.test.ts).
+            {
+              from: { element: { type: 'module', captured: { module: 'identity' } } },
+              disallow: { to: { element: { type: 'module', captured: { module: '!identity' } } } },
+              message: ONE_WAY_IDENTITY,
+            },
+            {
+              from: { element: { type: 'module', captured: { module: 'agency' } } },
+              disallow: { to: { element: { type: 'module', captured: { module: 'admin' } } } },
+              message: ONE_WAY_AGENCY,
             },
           ],
         },

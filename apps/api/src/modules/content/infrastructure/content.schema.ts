@@ -392,7 +392,8 @@ export const projectAmenities = pgTable(
       name: 'project_amenities_amenity_id_fk',
       columns: [t.amenityId],
       foreignColumns: [amenitiesTarget.id],
-    }).onDelete('cascade'),
+      // FR-ADM-04: an amenity in use cannot be deleted, only deactivated (migration 0003).
+    }).onDelete('restrict'),
   ],
 );
 
@@ -434,6 +435,7 @@ export const unitTagLinks = pgTable(
       name: 'unit_tag_links_unit_tag_id_fk',
       columns: [t.unitTagId],
       foreignColumns: [unitTagsTarget.id],
-    }).onDelete('cascade'),
+      // FR-ADM-04: a unit tag in use cannot be deleted, only deactivated (migration 0003).
+    }).onDelete('restrict'),
   ],
 );

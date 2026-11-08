@@ -10,6 +10,7 @@ export interface SettingsRow {
   invitationValidityDays: number;
   dailyRevealLimit: number;
   currentTermsVersion: string;
+  updatedAt: Date;
 }
 
 @Injectable()
@@ -24,6 +25,7 @@ export class AdminReadRepository {
         invitationValidityDays: settings.invitationValidityDays,
         dailyRevealLimit: settings.dailyRevealLimit,
         currentTermsVersion: settings.currentTermsVersion,
+        updatedAt: settings.updatedAt,
       })
       .from(settings)
       .limit(1);

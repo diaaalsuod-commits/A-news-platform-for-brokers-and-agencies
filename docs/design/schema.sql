@@ -599,11 +599,11 @@ ALTER TABLE contact_reveals ADD CONSTRAINT contact_reveals_sales_contact_id_fk F
 ALTER TABLE contact_reveals ADD CONSTRAINT contact_reveals_project_id_fk FOREIGN KEY (project_id) REFERENCES projects (id);
 ALTER TABLE audit_logs ADD CONSTRAINT audit_logs_actor_id_fk FOREIGN KEY (actor_id) REFERENCES users (id);
 ALTER TABLE project_amenities ADD CONSTRAINT project_amenities_project_id_fk FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE;
-ALTER TABLE project_amenities ADD CONSTRAINT project_amenities_amenity_id_fk FOREIGN KEY (amenity_id) REFERENCES amenities (id) ON DELETE CASCADE;
+ALTER TABLE project_amenities ADD CONSTRAINT project_amenities_amenity_id_fk FOREIGN KEY (amenity_id) REFERENCES amenities (id) ON DELETE RESTRICT;
 ALTER TABLE project_sales_contacts ADD CONSTRAINT project_sales_contacts_project_id_fk FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE CASCADE;
 ALTER TABLE project_sales_contacts ADD CONSTRAINT project_sales_contacts_sales_contact_id_fk FOREIGN KEY (sales_contact_id) REFERENCES sales_contacts (id) ON DELETE CASCADE;
 ALTER TABLE unit_tag_links ADD CONSTRAINT unit_tag_links_unit_id_fk FOREIGN KEY (unit_id) REFERENCES units (id) ON DELETE CASCADE;
-ALTER TABLE unit_tag_links ADD CONSTRAINT unit_tag_links_unit_tag_id_fk FOREIGN KEY (unit_tag_id) REFERENCES unit_tags (id) ON DELETE CASCADE;
+ALTER TABLE unit_tag_links ADD CONSTRAINT unit_tag_links_unit_tag_id_fk FOREIGN KEY (unit_tag_id) REFERENCES unit_tags (id) ON DELETE RESTRICT;
 ALTER TABLE users ADD CONSTRAINT users_pref_currency_fk FOREIGN KEY (pref_currency) REFERENCES currencies (code);
 ALTER TABLE catalogs ADD CONSTRAINT catalogs_currency_fk FOREIGN KEY (currency_code) REFERENCES currencies (code);
 

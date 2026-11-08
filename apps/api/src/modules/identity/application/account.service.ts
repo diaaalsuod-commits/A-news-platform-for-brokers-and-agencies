@@ -6,10 +6,10 @@ import {
   type UpdatePreferencesRequest,
   type UpdateProfileRequest,
 } from '@reih/contracts';
-import { RatesReader } from '../../admin/index.js';
 import { downloadHeaders, FileStorage } from '../../../shared/files/index.js';
 import { AppError } from '../../../shared/http/index.js';
 import { UserRepository } from '../infrastructure/user.repository.js';
+import { CurrencyPolicyPort } from './ports.js';
 
 /** FR-ACC-05: where profile photos are stored under FILES_DIR. */
 export const PROFILE_PHOTO_DIRECTORY = 'profile-photos';
@@ -21,7 +21,7 @@ export class AccountService {
 
   constructor(
     private readonly users: UserRepository,
-    private readonly rates: RatesReader,
+    private readonly rates: CurrencyPolicyPort,
     private readonly files: FileStorage,
   ) {}
 
