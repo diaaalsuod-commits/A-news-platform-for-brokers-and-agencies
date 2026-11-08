@@ -13,7 +13,11 @@
     "test": "turbo run test",
     "format": "prettier --write .",
     "db:generate": "pnpm --filter @reih/contracts build && pnpm --filter @reih/api db:generate",
-    "db:migrate": "pnpm --filter @reih/contracts build && pnpm --filter @reih/api db:migrate"
+    "db:migrate": "pnpm --filter @reih/contracts build && pnpm --filter @reih/api db:migrate",
+    "db:seed": "pnpm --filter @reih/api... build && pnpm --filter @reih/api db:seed",
+    "db:seed:admin": "pnpm --filter @reih/api... build && pnpm --filter @reih/api db:seed:admin",
+    "db:seed:demo": "pnpm --filter @reih/api... build && pnpm --filter @reih/api db:seed:demo",
+    "db:seed:load": "pnpm --filter @reih/api... build && pnpm --filter @reih/api db:seed:load"
   },
   "prettier": "@reih/config/prettier",
   "devDependencies": {

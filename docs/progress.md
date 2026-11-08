@@ -163,3 +163,7 @@ One box per FR and NFR in docs/srs.md (SRS v3.1). When you tick an ID, update it
 - [ ] NFR-15 (Content licensing) Only licensed or self-produced data and media
 - [ ] NFR-16 (Deployment) Docker Compose on one Linux server behind HTTPS
 - [ ] NFR-17 (Usability) Visible states, first-time broker done within 10 minutes
+
+## Notes
+
+- Phase 5: check the 30 demo projects on the map; move any that fall in the sea.

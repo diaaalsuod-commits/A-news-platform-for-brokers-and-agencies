@@ -26,6 +26,8 @@ const envSchema = z.object({
   // Only the command-line seed that creates the first Platform Admin needs these (SRS 2.5).
   FIRST_ADMIN_EMAIL: optional(z.email()),
   FIRST_ADMIN_PASSWORD: optional(z.string()),
+  // db:seed:demo refuses to run in production unless this is true.
+  ALLOW_DEMO_SEED: optional(z.enum(['true', 'false'])),
 });
 
 export type Env = z.infer<typeof envSchema>;

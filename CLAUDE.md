@@ -116,4 +116,4 @@ SVG logos sanitized; files served by short-lived signed links; no secrets in the
 
 ## Commands
 pnpm dev | pnpm test | pnpm lint | pnpm typecheck | pnpm db:generate | pnpm db:migrate
-pnpm db:seed | pnpm db:seed:demo | pnpm db:seed:load | docker compose up -d
+pnpm db:seed | pnpm db:seed:admin | pnpm db:seed:demo | pnpm db:seed:load | docker compose up -d

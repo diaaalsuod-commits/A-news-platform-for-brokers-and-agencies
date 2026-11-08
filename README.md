@@ -88,3 +88,33 @@ pnpm build
 ```
 
 The API and worker tests start their own containers, so Docker must be running.
+
+## Seed data
+
+Run `pnpm db:migrate` first. Each seed can run again and changes nothing the second time.
+
+| Command              | What it does                                                                                                    |
+| -------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `pnpm db:seed`       | Reference data: currencies, dictionaries, amenities, emirates, communities                                      |
+| `pnpm db:seed:admin` | Creates the first Platform Admin from `FIRST_ADMIN_EMAIL` and `FIRST_ADMIN_PASSWORD`, and refuses if one exists |
+| `pnpm db:seed:demo`  | Fictional developers, 30 published projects, and demo exchange rates                                            |
+| `pnpm db:seed:load`  | 5,000 published projects and 250,000 units for the load tests                                                   |
+
+`db:seed:demo` refuses to run in production unless `ALLOW_DEMO_SEED=true`. The exchange rates it adds
+are demo values, not market rates; an entry in `audit_logs` marks each one.
+
+`db:seed:load` has no undo, so it refuses to run in production and on any database whose name does not
+end with `_load`. Give it a database of its own. A `DATABASE_URL` in the environment takes priority
+over `.env`:
+
+```bash
+docker compose exec postgres sh -c 'createdb -U "$POSTGRES_USER" reih_load'
+```
+
+```bash
+DATABASE_URL=postgres://<user>:<password>@localhost:5432/reih_load pnpm db:migrate
+```
+
+```bash
+DATABASE_URL=postgres://<user>:<password>@localhost:5432/reih_load pnpm db:seed:load
+```

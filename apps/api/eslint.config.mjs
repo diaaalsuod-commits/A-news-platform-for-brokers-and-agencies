@@ -19,8 +19,9 @@ export default [
         { type: 'shared', pattern: 'src/shared/*', partialMatch: false, capture: ['area'] },
         { type: 'test', pattern: 'test', partialMatch: false },
       ],
-      // main.ts, app.module.ts and app.setup.ts wire the application together.
-      'boundaries/files': [{ pattern: 'src/*.ts', category: 'app' }],
+      // main.ts, app.module.ts and app.setup.ts wire the application together, and src/cli does the
+      // same for the command-line seeds.
+      'boundaries/files': [{ pattern: ['src/*.ts', 'src/cli/*.ts'], category: 'app' }],
     },
     rules: {
       'boundaries/dependencies': [
