@@ -1,3 +1,4 @@
+import { passwordSchema } from '@reih/contracts';
 import { z } from 'zod';
 
 const webUrl = z.url({ protocol: /^https?$/ });
@@ -28,6 +29,9 @@ const envSchema = z.object({
   FIRST_ADMIN_PASSWORD: optional(z.string()),
   // db:seed:demo refuses to run in production unless this is true.
   ALLOW_DEMO_SEED: optional(z.enum(['true', 'false'])),
+  // The one password of the demo agency users (db:seed:demo, development only). Without it the demo
+  // agencies get no users.
+  DEMO_USER_PASSWORD: optional(passwordSchema),
 });
 
 export type Env = z.infer<typeof envSchema>;

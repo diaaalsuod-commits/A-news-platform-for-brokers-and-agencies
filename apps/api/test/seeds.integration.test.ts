@@ -396,6 +396,100 @@ describe('seeds', () => {
       expect(rows).toEqual([{ is_enabled: false }]);
       await pool.query(`UPDATE currencies SET is_enabled = true WHERE code = 'GBP'`);
     });
+
+    it('D-02 FR-AGY-01 adds two fictional agencies with branding and no logo', async () => {
+      const { rows } = await pool.query(
+        `SELECT a.name_en, a.status, b.marketing_name, b.primary_color, b.website, b.orn, b.logo_path
+         FROM agencies a JOIN agency_branding b ON b.agency_id = a.id
+         WHERE a.trade_license_no LIKE 'DEMO-TL-%' ORDER BY a.trade_license_no`,
+      );
+      expect(rows.map((row) => row.name_en)).toEqual([
+        'Sandline Realty (Demo)',
+        'Corniche Key Homes (Demo)',
+      ]);
+      for (const row of rows) {
+        expect(row).toMatchObject({ status: 'active', logo_path: null });
+        expect(row.primary_color).toMatch(/^#[0-9A-F]{6}$/);
+        expect(row.website).toMatch(/^https:\/\//);
+        expect(row.orn).toMatch(/^[0-9]{3,10}$/);
+      }
+    });
+
+    it('D-02 without DEMO_USER_PASSWORD the demo agencies get no users', async () => {
+      expect(env.DEMO_USER_PASSWORD).toBeUndefined();
+      expect(
+        await count(
+          pool,
+          `users u JOIN agencies a ON a.id = u.agency_id WHERE a.trade_license_no LIKE 'DEMO-TL-%'`,
+        ),
+      ).toBe(0);
+    });
+  });
+
+  describe('demo agency users', () => {
+    const DEMO_PASSWORD = 'demo-password-for-tests';
+
+    it('D-02 with DEMO_USER_PASSWORD each agency has one active Agency Admin and two brokers', async () => {
+      const { pool, env } = await newDatabase('seed_demo_users', {
+        DEMO_USER_PASSWORD: DEMO_PASSWORD,
+      });
+      await runSeedCommand('demo', env);
+      const { rows } = await pool.query(
+        `SELECT a.trade_license_no, u.role, u.status, u.email, u.password_hash
+         FROM users u JOIN agencies a ON a.id = u.agency_id
+         WHERE a.trade_license_no LIKE 'DEMO-TL-%' ORDER BY a.trade_license_no, u.role, u.email`,
+      );
+      expect(rows).toHaveLength(6);
+      for (const license of ['DEMO-TL-0001', 'DEMO-TL-0002']) {
+        const members = rows.filter((row) => row.trade_license_no === license);
+        expect(members.map((row) => row.role as string).sort()).toEqual([
+          'agency_admin',
+          'broker',
+          'broker',
+        ]);
+        expect(members.every((row) => row.status === 'active')).toBe(true);
+      }
+      expect(rows.every((row) => row.email.endsWith('.reih-demo.test'))).toBe(true);
+      expect(await verify(rows[0].password_hash, DEMO_PASSWORD)).toBe(true);
+      expect(rows[0].password_hash).toMatch(/^\$argon2id\$/);
+
+      const before = await snapshot(pool);
+      await runSeedCommand('demo', env);
+      expect(await snapshot(pool)).toEqual(before);
+    });
+
+    it('E5 never creates demo agencies or their users in production, even with ALLOW_DEMO_SEED', async () => {
+      const { pool, env } = await newDatabase('seed_demo_production', {
+        NODE_ENV: 'production',
+        ALLOW_DEMO_SEED: 'true',
+        DEMO_USER_PASSWORD: DEMO_PASSWORD,
+      });
+      const messages: string[] = [];
+      await runSeedCommand('demo', env, { log: (message) => messages.push(message) });
+      expect(await count(pool, `agencies WHERE trade_license_no LIKE 'DEMO-TL-%'`)).toBe(0);
+      expect(await count(pool, `users WHERE email LIKE '%.reih-demo.test'`)).toBe(0);
+      expect(messages.some((message) => /never created in production/.test(message))).toBe(true);
+    });
+
+    it('E3 a DEMO_USER_PASSWORD under 10 characters is refused when the environment is read', () => {
+      expect(() =>
+        parseEnv({
+          NODE_ENV: 'development',
+          API_PORT: '4000',
+          LOG_LEVEL: 'silent',
+          DATABASE_URL: 'postgres://u:p@localhost:5432/db',
+          REDIS_URL: 'redis://localhost:6379',
+          SMTP_HOST: '127.0.0.1',
+          SMTP_PORT: '1025',
+          SMTP_FROM: 'REIH <no-reply@example.test>',
+          FILES_DIR: './files',
+          URL_SIGNING_SECRET: 'a-test-secret-of-at-least-32-characters',
+          APP_URL: 'https://app.localhost',
+          OPS_URL: 'https://ops.localhost',
+          DEMO_USER_PASSWORD: 'short',
+        }),
+      ).toThrow(/DEMO_USER_PASSWORD/);
+    });
   });
 
   describe('load data', () => {

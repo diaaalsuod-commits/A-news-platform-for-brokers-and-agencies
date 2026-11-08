@@ -20,7 +20,7 @@ import { InvitationRepository } from './infrastructure/invitation.repository.js'
 import { PasswordHasher } from './infrastructure/password-hasher.js';
 import { PasswordResetRepository } from './infrastructure/password-reset.repository.js';
 import { SessionRepository } from './infrastructure/session.repository.js';
-import { StaffRepository } from './infrastructure/staff.repository.js';
+import { DirectoryRepository } from './infrastructure/directory.repository.js';
 import { UserRepository } from './infrastructure/user.repository.js';
 
 @Module({
@@ -33,7 +33,7 @@ import { UserRepository } from './infrastructure/user.repository.js';
     SessionRepository,
     InvitationRepository,
     PasswordResetRepository,
-    StaffRepository,
+    DirectoryRepository,
     PasswordHasher,
     AccountLinks,
     SessionService,

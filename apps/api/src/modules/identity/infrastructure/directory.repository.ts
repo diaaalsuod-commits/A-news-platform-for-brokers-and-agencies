@@ -4,19 +4,41 @@ import { and, asc, count, desc, eq, ilike, inArray, isNull, or, type SQL } from 
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { containsPattern, DATABASE } from '../../../shared/database/index.js';
 import {
-  type StaffChange,
-  type StaffRefusal,
+  type AccountChange,
+  type AccountRefusal,
+  accountChangeRefusal,
+  type KeeperRole,
+  MEMBER_ROLES,
   STAFF_ROLES,
-  type StaffRole,
-  staffChangeRefusal,
-} from '../domain/staff-policy.js';
+} from '../domain/account-policy.js';
 import { invitations, users } from './identity.schema.js';
 
-export interface StaffRow {
+/**
+ * Whose accounts an admin manages: the platform's staff (FR-ADM-03), or one agency's members
+ * (FR-AGY-02 to FR-AGY-04). Every query below is limited to its scope.
+ */
+export interface DirectoryScope {
+  roles: readonly UserRole[];
+  /** Null for staff, who belong to no agency. */
+  agencyId: string | null;
+  keeperRole: KeeperRole;
+}
+
+export const STAFF_SCOPE: DirectoryScope = {
+  roles: STAFF_ROLES,
+  agencyId: null,
+  keeperRole: 'platform_admin',
+};
+
+export function memberScope(agencyId: string): DirectoryScope {
+  return { roles: MEMBER_ROLES, agencyId, keeperRole: 'agency_admin' };
+}
+
+export interface AccountRow {
   id: string;
   email: string;
   fullName: string | null;
-  role: StaffRole;
+  role: UserRole;
   status: UserStatus;
   lastLoginAt: Date | null;
   createdAt: Date;
@@ -32,12 +54,12 @@ export interface OpenInvitationRow {
   createdAt: Date;
 }
 
-export type StaffChangeOutcome =
+export type AccountChangeOutcome =
   | { outcome: 'not_found' }
-  | { outcome: 'refused'; code: StaffRefusal }
+  | { outcome: 'refused'; code: AccountRefusal }
   | { outcome: 'done'; changed: boolean };
 
-const staffColumns = {
+const accountColumns = {
   id: users.id,
   email: users.email,
   fullName: users.fullName,
@@ -64,20 +86,25 @@ const isOpenInvitation = and(
   eq(users.status, 'invited'),
 );
 
-/** FR-ADM-03: staff accounts (Data Operators and Platform Admins), for the Platform Admin. */
+/** The users of a scope: its roles, in its agency (or in none, for staff). */
+function inScope(scope: DirectoryScope, roles: readonly UserRole[] = scope.roles): SQL {
+  return and(
+    inArray(users.role, [...roles]),
+    scope.agencyId === null ? isNull(users.agencyId) : eq(users.agencyId, scope.agencyId),
+  ) as SQL;
+}
+
+/** FR-ADM-03, FR-AGY-02 to FR-AGY-04: the accounts an admin manages. */
 @Injectable()
-export class StaffRepository {
+export class DirectoryRepository {
   constructor(@Inject(DATABASE) private readonly db: NodePgDatabase) {}
 
-  async list(filter: {
-    page: number;
-    pageSize: number;
-    q?: string;
-    role?: StaffRole;
-    status?: UserStatus;
-  }): Promise<{ items: StaffRow[]; total: number }> {
-    const conditions: (SQL | undefined)[] = [
-      filter.role ? eq(users.role, filter.role) : inArray(users.role, [...STAFF_ROLES]),
+  async list(
+    scope: DirectoryScope,
+    filter: { page: number; pageSize: number; q?: string; role?: UserRole; status?: UserStatus },
+  ): Promise<{ items: AccountRow[]; total: number }> {
+    const where = and(
+      inScope(scope, filter.role ? [filter.role] : scope.roles),
       filter.status ? eq(users.status, filter.status) : undefined,
       filter.q
         ? or(
@@ -85,11 +112,10 @@ export class StaffRepository {
             ilike(users.fullName, containsPattern(filter.q)),
           )
         : undefined,
-    ];
-    const where = and(...conditions);
+    );
     const [items, [totals]] = await Promise.all([
       this.db
-        .select(staffColumns)
+        .select(accountColumns)
         .from(users)
         .where(where)
         .orderBy(asc(users.email))
@@ -97,15 +123,15 @@ export class StaffRepository {
         .offset((filter.page - 1) * filter.pageSize),
       this.db.select({ total: count() }).from(users).where(where),
     ]);
-    return { items: items as StaffRow[], total: totals?.total ?? 0 };
+    return { items, total: totals?.total ?? 0 };
   }
 
-  async findStaff(userId: string): Promise<StaffRow | null> {
+  async find(scope: DirectoryScope, userId: string): Promise<AccountRow | null> {
     const [row] = await this.db
-      .select(staffColumns)
+      .select(accountColumns)
       .from(users)
-      .where(and(eq(users.id, userId), inArray(users.role, [...STAFF_ROLES])));
-    return (row as StaffRow | undefined) ?? null;
+      .where(and(eq(users.id, userId), inScope(scope)));
+    return row ?? null;
   }
 
   /** The newest open invitation of each user. */
@@ -124,15 +150,16 @@ export class StaffRepository {
     return newest;
   }
 
-  /** FR-ADM-01: the open invitations of an agency's Agency Admins, newest first. */
-  async openAgencyAdminInvitations(
+  /** FR-ADM-01, FR-AGY-03: an agency's open invitations of these roles, newest first. */
+  async openAgencyInvitations(
     agencyId: string,
+    roles: readonly UserRole[],
     page: number,
     pageSize: number,
   ): Promise<{ items: OpenInvitationRow[]; total: number }> {
     const where = and(
       eq(invitations.agencyId, agencyId),
-      eq(invitations.role, 'agency_admin'),
+      inArray(invitations.role, [...roles]),
       isOpenInvitation,
     );
     const [items, [totals]] = await Promise.all([
@@ -154,23 +181,25 @@ export class StaffRepository {
   }
 
   /**
-   * FR-ADM-03: one staff change in one transaction. The active Platform Admins are locked first, in
-   * id order, so two changes at once run one after the other: the second one re-reads the rows
-   * after the first commits and sees an admin it deactivated as gone. A single conditional UPDATE
-   * would not do, because under READ COMMITTED each would still count the other admin as active.
-   * The caller publishes MemberDeactivated after a deactivation, and its listener ends the sessions.
+   * FR-ADM-03, FR-AGY-04: one account change in one transaction. The scope's active keepers
+   * (Platform Admins, or the agency's Agency Admins) are locked first, in id order, so two changes
+   * at once run one after the other: the second one re-reads the rows after the first commits and
+   * sees a keeper it removed as gone. A single conditional UPDATE would not do, because under READ
+   * COMMITTED each would still count the other as active. The caller publishes MemberDeactivated
+   * after a deactivation, and its listener ends the sessions.
    */
   async change(
+    scope: DirectoryScope,
     actorId: string,
     userId: string,
-    change: StaffChange,
+    change: AccountChange,
     now: Date,
-  ): Promise<StaffChangeOutcome> {
+  ): Promise<AccountChangeOutcome> {
     return this.db.transaction(async (tx) => {
-      const admins = await tx
+      const keepers = await tx
         .select({ id: users.id })
         .from(users)
-        .where(and(eq(users.role, 'platform_admin'), eq(users.status, 'active')))
+        .where(and(inScope(scope, [scope.keeperRole]), eq(users.status, 'active')))
         .orderBy(asc(users.id))
         .for('update');
       const [target] = await tx
@@ -181,13 +210,13 @@ export class StaffRepository {
           passwordHash: users.passwordHash,
         })
         .from(users)
-        .where(and(eq(users.id, userId), inArray(users.role, [...STAFF_ROLES])))
+        .where(and(eq(users.id, userId), inScope(scope)))
         .for('update');
       if (!target) {
         return { outcome: 'not_found' };
       }
 
-      const refusal = staffChangeRefusal(
+      const refusal = accountChangeRefusal(
         actorId,
         {
           id: target.id,
@@ -196,7 +225,8 @@ export class StaffRepository {
           hasPassword: target.passwordHash !== null,
         },
         change,
-        admins.map((admin) => admin.id),
+        keepers.map((keeper) => keeper.id),
+        scope.keeperRole,
       );
       if (refusal === 'unchanged') {
         return { outcome: 'done', changed: false };

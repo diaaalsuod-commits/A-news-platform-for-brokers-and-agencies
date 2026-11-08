@@ -1,6 +1,6 @@
 import type { ReadStream } from 'node:fs';
 import type { Readable } from 'node:stream';
-import { HttpStatus, Injectable, Logger } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import {
   PROFILE_PHOTO_MAX_BYTES,
   type UpdatePreferencesRequest,
@@ -17,8 +17,6 @@ export const PROFILE_PHOTO_DIRECTORY = 'profile-photos';
 /** FR-ACC-05 profile and photo, FR-ACC-06 preferences: the caller's own account only. */
 @Injectable()
 export class AccountService {
-  private readonly logger = new Logger(AccountService.name);
-
   constructor(
     private readonly users: UserRepository,
     private readonly rates: CurrencyPolicyPort,
@@ -47,7 +45,9 @@ export class AccountService {
 
   /**
    * JPEG or PNG up to 2 MB, judged by its bytes, never by its name. The file is streamed to disk;
-   * nothing stays if it is refused. The old photo is removed once the new one is saved.
+   * nothing stays if it is refused. Each photo gets a new file and only the user row changes: the
+   * previous file stays, because a catalog queued earlier may still show it on its cover
+   * (docs/decisions.md, P3.2). The new file is removed if the row cannot be updated.
    */
   async replacePhoto(userId: string, source: Readable): Promise<void> {
     const stored = await this.files.save(source, {
@@ -55,18 +55,17 @@ export class AccountService {
       maxBytes: PROFILE_PHOTO_MAX_BYTES,
       allowed: ['jpeg', 'png'],
     });
-    let previous: string | null;
     try {
-      previous = await this.users.replacePhoto(userId, stored.key, new Date());
+      await this.users.setPhoto(userId, stored.key, new Date());
     } catch (error) {
       await this.files.remove(stored.key);
       throw error;
     }
-    await this.removeQuietly(previous);
   }
 
+  /** Only the row changes; the file stays for catalogs queued earlier. */
   async removePhoto(userId: string): Promise<void> {
-    await this.removeQuietly(await this.users.replacePhoto(userId, null, new Date()));
+    await this.users.setPhoto(userId, null, new Date());
   }
 
   /** The caller's own photo, with the headers every download carries. */
@@ -83,15 +82,5 @@ export class AccountService {
       stream.once('error', () => reject(new AppError('NOT_FOUND', HttpStatus.NOT_FOUND)));
     });
     return { stream, headers: downloadHeaders(key) };
-  }
-
-  /** A file left behind costs only disk space, so a failed removal is logged, not raised. */
-  private async removeQuietly(key: string | null): Promise<void> {
-    if (key === null) return;
-    try {
-      await this.files.remove(key);
-    } catch (error) {
-      this.logger.warn({ msg: 'Old profile photo not removed', key, err: error });
-    }
   }
 }

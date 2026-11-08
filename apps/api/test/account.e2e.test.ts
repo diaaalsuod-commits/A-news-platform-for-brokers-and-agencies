@@ -659,7 +659,7 @@ describe('identity: invitations, activation, password, profile and preferences',
       return existsSync(dir) ? readdirSync(dir) : [];
     };
 
-    it('FR-ACC-05 a JPEG or PNG photo is stored, served with its type, and the old one removed', async () => {
+    it('FR-ACC-05 a JPEG or PNG photo is stored and served with its type; the old file stays for queued catalogs', async () => {
       const user = await createUser();
       const session = await sessionFor(user.email);
 
@@ -679,8 +679,10 @@ describe('identity: invitations, activation, password, profile and preferences',
       expect(second.status).toBe(200);
       expect(second.body.user.photoUrl).not.toBe(first.body.user.photoUrl);
       const secondKey = (await userRow(user.id)).photo_path as string;
+      expect(secondKey).not.toBe(firstKey);
       expect(photos()).toContain(secondKey.split('/')[1]);
-      expect(photos()).not.toContain(firstKey.split('/')[1]);
+      // Only the row changed: a catalog queued earlier may still use the first photo (P3.2).
+      expect(photos()).toContain(firstKey.split('/')[1]);
       expect((await get('/me/photo', session).expect(200)).headers['content-type']).toBe(
         'image/png',
       );
@@ -724,7 +726,7 @@ describe('identity: invitations, activation, password, profile and preferences',
       expect((await userRow(user.id)).photo_path).toBeNull();
     });
 
-    it('FR-ACC-05 a photo can be removed', async () => {
+    it('FR-ACC-05 a photo can be removed; only the row changes and the file stays', async () => {
       const user = await createUser();
       const session = await sessionFor(user.email);
       await upload(session, jpeg(3_000), 'me.jpg');
@@ -733,7 +735,8 @@ describe('identity: invitations, activation, password, profile and preferences',
       const removed = await send('delete', '/me/photo', { session });
       expect(removed.status).toBe(200);
       expect(removed.body.user.photoUrl).toBeNull();
-      expect(photos()).not.toContain(key.split('/')[1]);
+      expect((await userRow(user.id)).photo_path).toBeNull();
+      expect(photos()).toContain(key.split('/')[1]);
       expect(errorOf(await get('/me/photo', session).expect(404))).toBe('NOT_FOUND');
     });
   });

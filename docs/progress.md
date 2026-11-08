@@ -19,10 +19,10 @@ One box per FR and NFR in docs/srs.md (SRS v3.1). When you tick an ID, update it
 
 **0 / 4 done** (4 Must, 0 Should)
 
-- [ ] FR-AGY-01 (Must) Manage agency branding
-- [ ] FR-AGY-02 (Must) Invite members, resend or cancel invitations
-- [ ] FR-AGY-03 (Must) See members and pending invitations
-- [ ] FR-AGY-04 (Must) Change member role, deactivate or reactivate member
+- [ ] FR-AGY-01 (Must) Manage agency branding — backend done; broker-web screen and catalog check pending
+- [ ] FR-AGY-02 (Must) Invite members, resend or cancel invitations — backend done; broker-web screen pending
+- [ ] FR-AGY-03 (Must) See members and pending invitations — backend done; broker-web screen pending
+- [ ] FR-AGY-04 (Must) Change member role, deactivate or reactivate member — backend done; broker-web screen pending
 
 ## MAP: Map
 

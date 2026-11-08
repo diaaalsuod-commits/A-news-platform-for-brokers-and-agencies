@@ -2,21 +2,30 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 import type {
   InvitationListResponse,
   InvitationSummary,
+  Member,
+  MemberListQuery,
+  MemberListResponse,
+  MemberRole,
   PageQuery,
   StaffListQuery,
   StaffListResponse,
   StaffMember,
   StaffRole,
+  UserRole,
 } from '@reih/contracts';
 import { EventBus, MemberDeactivated } from '../../../shared/events/index.js';
 import { AppError } from '../../../shared/http/index.js';
+import { type AccountChange, MEMBER_ROLES } from '../domain/account-policy.js';
 import type { Inviter } from '../domain/link-policy.js';
-import type { StaffChange } from '../domain/staff-policy.js';
 import {
+  type AccountRow,
+  type DirectoryScope,
+  DirectoryRepository,
+  memberScope,
   type OpenInvitationRow,
-  StaffRepository,
-  type StaffRow,
-} from '../infrastructure/staff.repository.js';
+  STAFF_SCOPE,
+} from '../infrastructure/directory.repository.js';
+import { AgencyStatusPort } from './ports.js';
 
 function summary(row: OpenInvitationRow, now: Date): InvitationSummary {
   return {
@@ -31,12 +40,17 @@ function summary(row: OpenInvitationRow, now: Date): InvitationSummary {
   };
 }
 
-function member(row: StaffRow, invitation: OpenInvitationRow | undefined, now: Date): StaffMember {
+/** The account in the shape both lists share; the role is narrowed by the scope it came from. */
+function account<R extends UserRole>(
+  row: AccountRow,
+  invitation: OpenInvitationRow | undefined,
+  now: Date,
+) {
   return {
     id: row.id,
     email: row.email,
     fullName: row.fullName,
-    role: row.role,
+    role: row.role as R,
     status: row.status,
     lastLoginAt: row.lastLoginAt?.toISOString() ?? null,
     createdAt: row.createdAt.toISOString(),
@@ -44,83 +58,161 @@ function member(row: StaffRow, invitation: OpenInvitationRow | undefined, now: D
   };
 }
 
+const notFound = () => new AppError('NOT_FOUND', HttpStatus.NOT_FOUND);
+const forbidden = () => new AppError('FORBIDDEN', HttpStatus.FORBIDDEN);
+
 /**
- * Identity's public directory of users. FR-ADM-03: the Platform Admin's staff operations. P3.2 adds
- * the Agency Admin's member operations here. Like InvitationService, it checks the caller itself.
+ * Identity's public directory of users. Like InvitationService, it checks the caller itself.
+ * FR-ADM-03: the Platform Admin's staff. FR-AGY-02 to FR-AGY-04: an Agency Admin's own agency,
+ * which always comes from the caller, never from a request; another agency's user is not found.
  */
 @Injectable()
 export class UserDirectory {
   constructor(
-    private readonly staff: StaffRepository,
+    private readonly directory: DirectoryRepository,
     private readonly events: EventBus,
+    private readonly agencies: AgencyStatusPort,
   ) {}
 
+  // ---------------------------------------------------------------- staff (FR-ADM-03)
+
   async listStaff(by: Inviter, query: StaffListQuery): Promise<StaffListResponse> {
-    this.assertPlatformAdmin(by);
-    const { items, total } = await this.staff.list(query);
-    const invitations = await this.staff.openInvitationsOf(items.map((row) => row.id));
+    return this.list<StaffRole>(this.staffScope(by), query);
+  }
+
+  async getStaff(by: Inviter, userId: string): Promise<StaffMember> {
+    return this.get<StaffRole>(this.staffScope(by), userId);
+  }
+
+  /** FR-ADM-01: an agency's open Agency Admin invitations, so they can be resent or cancelled. */
+  async listAgencyAdminInvitations(
+    by: Inviter,
+    agencyId: string,
+    query: PageQuery,
+  ): Promise<InvitationListResponse> {
+    this.staffScope(by);
+    return this.invitationsOf(agencyId, ['agency_admin'], query);
+  }
+
+  /** The role is read on every request, so the change applies at once. */
+  changeRole(by: Inviter, userId: string, role: StaffRole): Promise<StaffMember> {
+    return this.apply<StaffRole>(this.staffScope(by), by, userId, { kind: 'change_role', role });
+  }
+
+  /** Publishes MemberDeactivated; its listener ends the user's sessions. */
+  deactivate(by: Inviter, userId: string): Promise<StaffMember> {
+    return this.apply<StaffRole>(this.staffScope(by), by, userId, { kind: 'deactivate' });
+  }
+
+  reactivate(by: Inviter, userId: string): Promise<StaffMember> {
+    return this.apply<StaffRole>(this.staffScope(by), by, userId, { kind: 'reactivate' });
+  }
+
+  // ---------------------------------------------------------------- agency members (FR-AGY-02 to 04)
+
+  /** FR-AGY-03: only the caller's own agency. */
+  listMembers(by: Inviter, query: MemberListQuery): Promise<MemberListResponse> {
+    return this.list<MemberRole>(this.memberScope(by), query);
+  }
+
+  getMember(by: Inviter, userId: string): Promise<Member> {
+    return this.get<MemberRole>(this.memberScope(by), userId);
+  }
+
+  /** FR-AGY-03: the agency's open Broker and Agency Admin invitations. */
+  listMemberInvitations(by: Inviter, query: PageQuery): Promise<InvitationListResponse> {
+    const scope = this.memberScope(by);
+    return this.invitationsOf(scope.agencyId as string, MEMBER_ROLES, query);
+  }
+
+  /** FR-AGY-04: refused for oneself and when the agency would keep no active Agency Admin. */
+  changeMemberRole(by: Inviter, userId: string, role: MemberRole): Promise<Member> {
+    return this.apply<MemberRole>(this.memberScope(by), by, userId, { kind: 'change_role', role });
+  }
+
+  /**
+   * FR-AGY-04, UC-04.7: deactivation ends the member's sessions at once (MemberDeactivated).
+   * Reactivation needs an active agency, since a suspended agency's members cannot log in (BR-13).
+   */
+  async setMemberStatus(
+    by: Inviter,
+    userId: string,
+    status: 'active' | 'deactivated',
+  ): Promise<Member> {
+    const scope = this.memberScope(by);
+    if (status === 'active' && !(await this.agencies.isActive(scope.agencyId as string))) {
+      throw new AppError('AGENCY_SUSPENDED', HttpStatus.CONFLICT);
+    }
+    return this.apply<MemberRole>(scope, by, userId, {
+      kind: status === 'active' ? 'reactivate' : 'deactivate',
+    });
+  }
+
+  // ---------------------------------------------------------------- shared
+
+  private async list<R extends UserRole>(
+    scope: DirectoryScope,
+    query: { page: number; pageSize: number; q?: string; role?: R; status?: AccountRow['status'] },
+  ) {
+    const { items, total } = await this.directory.list(scope, query);
+    const invitations = await this.directory.openInvitationsOf(items.map((row) => row.id));
     const now = new Date();
     return {
-      items: items.map((row) => member(row, invitations.get(row.id), now)),
+      items: items.map((row) => account<R>(row, invitations.get(row.id), now)),
       total,
       page: query.page,
       pageSize: query.pageSize,
     };
   }
 
-  async getStaff(by: Inviter, userId: string): Promise<StaffMember> {
-    this.assertPlatformAdmin(by);
-    const row = await this.staff.findStaff(userId);
-    if (!row) {
-      throw new AppError('NOT_FOUND', HttpStatus.NOT_FOUND);
-    }
-    const invitations = await this.staff.openInvitationsOf([row.id]);
-    return member(row, invitations.get(row.id), new Date());
+  private async get<R extends UserRole>(scope: DirectoryScope, userId: string) {
+    const row = await this.directory.find(scope, userId);
+    if (!row) throw notFound();
+    const invitations = await this.directory.openInvitationsOf([row.id]);
+    return account<R>(row, invitations.get(row.id), new Date());
   }
 
-  /** FR-ADM-01: the agency's open Agency Admin invitations, so they can be resent or cancelled. */
-  async listAgencyAdminInvitations(
-    by: Inviter,
+  private async invitationsOf(
     agencyId: string,
+    roles: readonly UserRole[],
     { page, pageSize }: PageQuery,
   ): Promise<InvitationListResponse> {
-    this.assertPlatformAdmin(by);
-    const { items, total } = await this.staff.openAgencyAdminInvitations(agencyId, page, pageSize);
+    const { items, total } = await this.directory.openAgencyInvitations(
+      agencyId,
+      roles,
+      page,
+      pageSize,
+    );
     const now = new Date();
     return { items: items.map((row) => summary(row, now)), total, page, pageSize };
   }
 
-  /** The role is read on every request, so the change applies at once. */
-  changeRole(by: Inviter, userId: string, role: StaffRole): Promise<StaffMember> {
-    return this.apply(by, userId, { kind: 'change_role', role });
-  }
-
-  /** Publishes MemberDeactivated; its listener ends the user's sessions. */
-  async deactivate(by: Inviter, userId: string): Promise<StaffMember> {
-    const result = await this.apply(by, userId, { kind: 'deactivate' });
-    await this.events.publish(new MemberDeactivated(userId, null));
-    return result;
-  }
-
-  reactivate(by: Inviter, userId: string): Promise<StaffMember> {
-    return this.apply(by, userId, { kind: 'reactivate' });
-  }
-
-  private async apply(by: Inviter, userId: string, change: StaffChange): Promise<StaffMember> {
-    this.assertPlatformAdmin(by);
-    const result = await this.staff.change(by.id, userId, change, new Date());
-    if (result.outcome === 'not_found') {
-      throw new AppError('NOT_FOUND', HttpStatus.NOT_FOUND);
+  private async apply<R extends UserRole>(
+    scope: DirectoryScope,
+    by: Inviter,
+    userId: string,
+    change: AccountChange,
+  ) {
+    if (change.kind === 'change_role' && !scope.roles.includes(change.role)) {
+      throw forbidden();
     }
-    if (result.outcome === 'refused') {
-      throw new AppError(result.code, HttpStatus.CONFLICT);
+    const result = await this.directory.change(scope, by.id, userId, change, new Date());
+    if (result.outcome === 'not_found') throw notFound();
+    if (result.outcome === 'refused') throw new AppError(result.code, HttpStatus.CONFLICT);
+    if (change.kind === 'deactivate') {
+      await this.events.publish(new MemberDeactivated(userId, scope.agencyId));
     }
-    return this.getStaff(by, userId);
+    return this.get<R>(scope, userId);
   }
 
-  private assertPlatformAdmin(by: Inviter): void {
-    if (by.role !== 'platform_admin') {
-      throw new AppError('FORBIDDEN', HttpStatus.FORBIDDEN);
-    }
+  private staffScope(by: Inviter): DirectoryScope {
+    if (by.role !== 'platform_admin') throw forbidden();
+    return STAFF_SCOPE;
+  }
+
+  /** The caller's own agency, from the session: an id in a request never chooses it. */
+  private memberScope(by: Inviter): DirectoryScope {
+    if (by.role !== 'agency_admin' || by.agencyId === null) throw forbidden();
+    return memberScope(by.agencyId);
   }
 }

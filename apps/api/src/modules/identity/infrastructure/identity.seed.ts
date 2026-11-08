@@ -76,3 +76,41 @@ export async function createFirstPlatformAdmin(
     });
   });
 }
+
+/** Two brokers and one Agency Admin in each demo agency (D-02). */
+const DEMO_MEMBERS = [
+  { key: 'admin', role: 'agency_admin', fullName: 'Agency Admin' },
+  { key: 'broker1', role: 'broker', fullName: 'Broker One' },
+  { key: 'broker2', role: 'broker', fullName: 'Broker Two' },
+] as const;
+
+/**
+ * db:seed:demo: the demo agencies' users, who log in with the one password in DEMO_USER_PASSWORD.
+ * The caller skips this without the password, and always in production (docs/decisions.md, P3.2).
+ * ON CONFLICT DO NOTHING, so a second run keeps the users and their passwords. Returns the emails.
+ */
+export async function seedDemoAgencyUsers(
+  db: SeedDb,
+  demoAgencies: readonly { id: string; slug: string; name: string }[],
+  password: string,
+): Promise<string[]> {
+  if (!isAcceptablePassword(password)) {
+    throw new SeedRefused(
+      `DEMO_USER_PASSWORD must have ${MIN_PASSWORD_LENGTH} to ${MAX_PASSWORD_LENGTH} characters.`,
+    );
+  }
+  const passwordHash = await hashPassword(password);
+  const rows = demoAgencies.flatMap((agency) =>
+    DEMO_MEMBERS.map((member) => ({
+      id: seedId('user', 'demo', agency.slug, member.key),
+      agencyId: agency.id,
+      email: `${member.key}@${agency.slug}.reih-demo.test`,
+      passwordHash,
+      role: member.role,
+      status: 'active' as const,
+      fullName: `${member.fullName}, ${agency.name}`,
+    })),
+  );
+  await db.insert(users).values(rows).onConflictDoNothing();
+  return rows.map((row) => row.email);
+}

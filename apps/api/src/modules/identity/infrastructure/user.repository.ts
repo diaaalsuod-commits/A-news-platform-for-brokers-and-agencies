@@ -168,16 +168,8 @@ export class UserRepository {
       .where(eq(users.id, userId));
   }
 
-  /** Sets or clears the photo and returns the key it replaced, for the caller to remove. */
-  async replacePhoto(userId: string, photoPath: string | null, now: Date): Promise<string | null> {
-    return this.db.transaction(async (tx) => {
-      const [current] = await tx
-        .select({ photoPath: users.photoPath })
-        .from(users)
-        .where(eq(users.id, userId))
-        .for('update');
-      await tx.update(users).set({ photoPath, updatedAt: now }).where(eq(users.id, userId));
-      return current?.photoPath ?? null;
-    });
+  /** Sets or clears the photo. The previous file is left on disk (docs/decisions.md, P3.2). */
+  async setPhoto(userId: string, photoPath: string | null, now: Date): Promise<void> {
+    await this.db.update(users).set({ photoPath, updatedAt: now }).where(eq(users.id, userId));
   }
 }

@@ -1,21 +1,35 @@
+import type { ReadStream } from 'node:fs';
+import type { Readable } from 'node:stream';
 import { HttpStatus, Injectable } from '@nestjs/common';
-import type {
-  Agency,
-  AgencyListQuery,
-  AgencyListResponse,
-  CreateAgencyRequest,
-  MeAgency,
-  UpdateAgencyRequest,
+import {
+  type Agency,
+  AGENCY_LOGO_MAX_BYTES,
+  type AgencyListQuery,
+  type AgencyListResponse,
+  type Branding,
+  type CreateAgencyRequest,
+  type MeAgency,
+  type UpdateAgencyRequest,
+  type UpdateBrandingRequest,
 } from '@reih/contracts';
 import { isUniqueViolation } from '../../../shared/database/index.js';
 import { AgencySuspended, EventBus } from '../../../shared/events/index.js';
+import { downloadHeaders, FileStorage } from '../../../shared/files/index.js';
 import { AppError } from '../../../shared/http/index.js';
 import {
   AGENCY_TRANSITIONS,
   type AgencyStatusAction,
   statusReason,
 } from '../domain/agency-status.js';
+import {
+  DEFAULT_PRIMARY_COLOR,
+  DEFAULT_SECONDARY_COLOR,
+  LOGO_DIRECTORY,
+  logoUrl,
+  normaliseColor,
+} from '../domain/branding.js';
 import { type AgencyDetailRow, AgencyRepository } from '../infrastructure/agency.repository.js';
+import { BrandingRepository, type BrandingRow } from '../infrastructure/branding.repository.js';
 
 function toAgency(row: AgencyDetailRow): Agency {
   return {
@@ -46,6 +60,8 @@ const licenseTaken = () => new AppError('TRADE_LICENSE_TAKEN', HttpStatus.CONFLI
 export class AgencyService {
   constructor(
     private readonly agencies: AgencyRepository,
+    private readonly branding: BrandingRepository,
+    private readonly files: FileStorage,
     private readonly events: EventBus,
   ) {}
 
@@ -136,4 +152,130 @@ export class AgencyService {
     }
     return this.get(agencyId);
   }
+
+  // ---------------------------------------------------------------- branding (FR-AGY-01)
+
+  /**
+   * FR-AGY-01: what a catalog needs, read fresh on each call. Catalogs copy it when they are
+   * generated (FR-CAT-06), so a later catalog uses new branding and an earlier PDF never changes.
+   * Until the Agency Admin saves branding, the defaults apply (isDefault). Null for an unknown id.
+   */
+  async getBranding(agencyId: string): Promise<AgencyBrandingSnapshot | null> {
+    const row = await this.branding.find(agencyId);
+    return row ? toSnapshot(row) : null;
+  }
+
+  /** The caller's own agency's branding, as the API shows it. */
+  async brandingOf(agencyId: string): Promise<Branding> {
+    const snapshot = await this.getBranding(agencyId);
+    if (!snapshot) throw notFound();
+    return {
+      marketingName: snapshot.marketingName,
+      primaryColor: snapshot.primaryColor,
+      secondaryColor: snapshot.secondaryColor,
+      phone: snapshot.phone,
+      email: snapshot.email,
+      website: snapshot.website,
+      address: snapshot.address,
+      orn: snapshot.orn,
+      logoUrl: logoUrl(snapshot.logoKey),
+      isDefault: snapshot.isDefault,
+      updatedAt: snapshot.updatedAt,
+    };
+  }
+
+  /** FR-AGY-01: every field at once; colors are stored upper-case. */
+  async updateBranding(agencyId: string, input: UpdateBrandingRequest): Promise<Branding> {
+    await this.branding.save(
+      agencyId,
+      {
+        ...input,
+        primaryColor: normaliseColor(input.primaryColor),
+        secondaryColor: normaliseColor(input.secondaryColor),
+      },
+      new Date(),
+    );
+    return this.brandingOf(agencyId);
+  }
+
+  /**
+   * FR-AGY-01: PNG or SVG up to 2 MB, judged by its bytes while it streams; an SVG is sanitized.
+   * Each logo gets a new file. The previous file stays on disk, since a catalog queued earlier may
+   * still use it; the new file is removed if the row cannot be updated.
+   */
+  async replaceLogo(agencyId: string, source: Readable): Promise<Branding> {
+    const stored = await this.files.save(source, {
+      directory: LOGO_DIRECTORY,
+      maxBytes: AGENCY_LOGO_MAX_BYTES,
+      allowed: ['png', 'svg'],
+    });
+    try {
+      await this.branding.setLogo(agencyId, stored.key, new Date());
+    } catch (error) {
+      await this.files.remove(stored.key);
+      throw error;
+    }
+    return this.brandingOf(agencyId);
+  }
+
+  /** Only the row changes; the file stays for catalogs queued earlier. */
+  async removeLogo(agencyId: string): Promise<Branding> {
+    const current = await this.branding.find(agencyId);
+    if (current?.logoPath) {
+      await this.branding.setLogo(agencyId, null, new Date());
+    }
+    return this.brandingOf(agencyId);
+  }
+
+  /** The agency's logo with the headers every download carries (nosniff, and a CSP for SVG). */
+  async openLogo(
+    agencyId: string,
+  ): Promise<{ stream: ReadStream; headers: Record<string, string> }> {
+    const key = (await this.branding.find(agencyId))?.logoPath;
+    if (!key) throw notFound();
+    const stream = this.files.openRead(key);
+    await new Promise<void>((resolve, reject) => {
+      stream.once('open', () => resolve());
+      stream.once('error', () => reject(notFound()));
+    });
+    return { stream, headers: downloadHeaders(key) };
+  }
+}
+
+/** FR-AGY-01: the branding a catalog copies at generation time (FR-CAT-04, FR-CAT-06). */
+export interface AgencyBrandingSnapshot {
+  agencyId: string;
+  nameAr: string;
+  nameEn: string;
+  marketingName: string;
+  primaryColor: string;
+  secondaryColor: string;
+  phone: string | null;
+  email: string | null;
+  website: string | null;
+  address: string | null;
+  orn: string | null;
+  /** The logo's key under FILES_DIR (FileStorage.openRead), or null. */
+  logoKey: string | null;
+  isDefault: boolean;
+  updatedAt: string | null;
+}
+
+function toSnapshot(row: BrandingRow): AgencyBrandingSnapshot {
+  return {
+    agencyId: row.agencyId,
+    nameAr: row.nameAr,
+    nameEn: row.nameEn,
+    marketingName: row.marketingName ?? row.nameEn,
+    primaryColor: row.primaryColor ?? DEFAULT_PRIMARY_COLOR,
+    secondaryColor: row.secondaryColor ?? DEFAULT_SECONDARY_COLOR,
+    phone: row.phone,
+    email: row.email,
+    website: row.website,
+    address: row.address,
+    orn: row.orn,
+    logoKey: row.logoPath,
+    isDefault: row.marketingName === null,
+    updatedAt: row.updatedAt?.toISOString() ?? null,
+  };
 }
