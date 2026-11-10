@@ -25,6 +25,28 @@ export const SENSITIVE_LOG_KEYS = [
 const SENSITIVE = new Set<string>(SENSITIVE_LOG_KEYS.map((key) => key.toLowerCase()));
 const isSensitiveKey = (key: string) => SENSITIVE.has(key.toLowerCase());
 
+/**
+ * The query parameter every list uses for free-text search. Whatever the user typed (a name, an
+ * email, a phone number) is in its value, so the value is never logged.
+ */
+export const FREE_TEXT_QUERY_KEY = 'q';
+
+/**
+ * A query key whose value is not logged: q (also as q[] or q[0], which a query parser may read as
+ * q), and any key that is never logged elsewhere. The key is compared as the server decodes it.
+ */
+export function isRedactedQueryKey(rawKey: string): boolean {
+  let key = rawKey;
+  try {
+    key = decodeURIComponent(rawKey.replace(/\+/g, ' '));
+  } catch {
+    // A malformed escape: compare the key as it was sent.
+  }
+  return (
+    key === FREE_TEXT_QUERY_KEY || key.startsWith(`${FREE_TEXT_QUERY_KEY}[`) || isSensitiveKey(key)
+  );
+}
+
 const MAX_DEPTH = 8;
 const MAX_CAUSES = 5;
 
@@ -117,8 +139,8 @@ export function safeErrorMessage(error: Error): string {
  *
  * A failed query, from any module, becomes its SQL text, the PostgreSQL code and the constraint
  * name: never the parameters, never the driver's detail or message (they contain values), and a
- * stack without its message lines. Any other error keeps its type, message, stack and simple
- * properties (a code, a port); its causes are serialized the same way.
+ * stack without its message lines. Any other error keeps its type, name, message, stack and simple
+ * properties (a code, a port); its cause is serialized the same way, up to five levels deep.
  */
 export function serializeError(error: unknown, depth = 0): unknown {
   if (!(error instanceof Error)) return redactSensitive(error);
@@ -137,6 +159,7 @@ export function serializeError(error: unknown, depth = 0): unknown {
 
   const logged: PlainObject = {
     type: error.constructor.name,
+    name: error.name,
     message: error.message,
     stack: error.stack,
   };

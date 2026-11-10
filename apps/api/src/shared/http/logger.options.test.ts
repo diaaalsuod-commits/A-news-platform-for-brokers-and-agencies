@@ -32,6 +32,53 @@ describe('log redaction', () => {
     expect(redactUrl('/api/v1/me')).toBe('/api/v1/me');
   });
 
+  it('NFR-08 NFR-11 the value of q is replaced; the path, the keys and the other values stay', () => {
+    expect(redactUrl('/api/v1/admin/staff?q=name@example.com&page=2&status=active')).toBe(
+      '/api/v1/admin/staff?q=[Redacted]&page=2&status=active',
+    );
+    expect(redactUrl('/api/v1/content/areas?parentId=abc&q=Dubai%20Marina')).toBe(
+      '/api/v1/content/areas?parentId=abc&q=[Redacted]',
+    );
+    expect(redactUrl('/api/v1/content/areas?q=')).toBe('/api/v1/content/areas?q=[Redacted]');
+    expect(redactUrl('/api/v1/content/areas?page=1')).toBe('/api/v1/content/areas?page=1');
+  });
+
+  it('NFR-08 q is found however the key is written, and sensitive keys are replaced too', () => {
+    for (const url of [
+      '/x?%71=name@example.com',
+      '/x?q[]=name@example.com',
+      '/x?q[0]=name@example.com',
+      '/x?q=a&q=name@example.com',
+      '/x?email=name@example.com',
+      '/x?Phone=%2B971501234567',
+    ]) {
+      expect(redactUrl(url), url).not.toMatch(/name@example\.com|971501234567/);
+    }
+    // A key that only starts with q is another parameter.
+    expect(redactUrl('/x?quarter=2')).toBe('/x?quarter=2');
+  });
+
+  it('NFR-08 a link token in the path and q in the query are both replaced', () => {
+    expect(redactUrl('/api/v1/auth/invitations/secret-token?q=name@example.com&lang=ar')).toBe(
+      '/api/v1/auth/invitations/[Redacted]?q=[Redacted]&lang=ar',
+    );
+  });
+
+  it('NFR-08 NFR-11 the logged request replaces q in its URL and in its parsed query', () => {
+    const serialize = (buildPinoHttpOptions(env).serializers as { req: (r: object) => object }).req;
+    const logged = serialize({
+      method: 'GET',
+      url: '/api/v1/admin/staff?q=name@example.com&page=2',
+      originalUrl: '/api/v1/admin/staff?q=name@example.com&page=2',
+      query: { q: 'name@example.com', page: '2' },
+      headers: {},
+      socket: {},
+    }) as { url: string; query: Record<string, string> };
+    expect(logged.url).toBe('/api/v1/admin/staff?q=[Redacted]&page=2');
+    expect(logged.query).toEqual({ q: '[Redacted]', page: '2' });
+    expect(JSON.stringify(logged)).not.toContain('name@example.com');
+  });
+
   it('NFR-08 the logged request keeps no route params, which repeat the token', () => {
     const serialize = (buildPinoHttpOptions(env).serializers as { req: (r: object) => object }).req;
     expect(
@@ -152,5 +199,29 @@ describe('the logger built from these options', () => {
     expect(entry.msg).toBe('SMTP connection lost');
     expect(entry.err).toMatchObject({ type: 'Error', message: 'SMTP connection lost' });
     expect(entry.err.stack).toContain('Error: SMTP connection lost');
+  });
+
+  it('an ordinary error keeps its name, message, stack and code, and its cause is logged the same way', () => {
+    const { logger, lines } = capture();
+    const cause = Object.assign(new Error('socket hang up'), { code: 'ECONNRESET' });
+    const error = Object.assign(new TypeError('Redis is unavailable', { cause }), {
+      code: 'ERR_REDIS',
+      details: { host: 'redis' },
+    });
+    logger.error({ err: error });
+
+    const entry = JSON.parse(lines[0] as string) as { msg: string; err: Record<string, unknown> };
+    expect(entry.msg).toBe('Redis is unavailable');
+    expect(entry.err).toMatchObject({
+      type: 'TypeError',
+      name: 'TypeError',
+      message: 'Redis is unavailable',
+      code: 'ERR_REDIS',
+      cause: { type: 'Error', name: 'Error', message: 'socket hang up', code: 'ECONNRESET' },
+    });
+    expect(entry.err.stack).toContain('TypeError: Redis is unavailable');
+    expect((entry.err.cause as { stack: string }).stack).toContain('Error: socket hang up');
+    // Only simple properties are kept: a nested object on the error is left out.
+    expect(entry.err).not.toHaveProperty('details');
   });
 });

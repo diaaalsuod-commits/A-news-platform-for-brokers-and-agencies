@@ -3,7 +3,13 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import pino from 'pino';
 import type { Options } from 'pino-http';
 import type { Env } from '../config/index.js';
-import { REDACTED, redactSensitive, serializeError, withSafeMessage } from './log-safety.js';
+import {
+  isRedactedQueryKey,
+  REDACTED,
+  redactSensitive,
+  serializeError,
+  withSafeMessage,
+} from './log-safety.js';
 
 const REQUEST_ID_HEADER = 'x-request-id';
 const VALID_REQUEST_ID = /^[\w-]{8,128}$/;
@@ -45,8 +51,35 @@ export const LOG_REDACT_PATHS = [
  */
 const TOKEN_IN_PATH = /(\/auth\/invitations\/)[^/?#]+/g;
 
+/**
+ * The logged URL keeps its path and its query keys. The value of q, the free-text search of every
+ * list, is replaced, and so is the value of a key that is never logged anywhere (an email, a phone
+ * number). Page, status and id values stay (NFR-08, NFR-11).
+ */
 export function redactUrl(url: string): string {
-  return url.replace(TOKEN_IN_PATH, '$1[Redacted]');
+  const withoutToken = url.replace(TOKEN_IN_PATH, '$1[Redacted]');
+  const queryAt = withoutToken.indexOf('?');
+  if (queryAt === -1) return withoutToken;
+  const hashAt = withoutToken.indexOf('#', queryAt);
+  const end = hashAt === -1 ? withoutToken.length : hashAt;
+  const query = withoutToken
+    .slice(queryAt + 1, end)
+    .split('&')
+    .map((pair) => {
+      const equalsAt = pair.indexOf('=');
+      const key = equalsAt === -1 ? pair : pair.slice(0, equalsAt);
+      return isRedactedQueryKey(key) ? `${key}=${REDACTED}` : pair;
+    })
+    .join('&');
+  return `${withoutToken.slice(0, queryAt + 1)}${query}${withoutToken.slice(end)}`;
+}
+
+/** The parsed query of a logged request, with the same values replaced as in its URL. */
+function redactQuery(query: unknown): unknown {
+  if (typeof query !== 'object' || query === null) return query;
+  return Object.fromEntries(
+    Object.entries(query).map(([key, value]) => [key, isRedactedQueryKey(key) ? REDACTED : value]),
+  );
 }
 
 export function buildPinoHttpOptions(env: Env): Options {
@@ -73,7 +106,7 @@ export function buildPinoHttpOptions(env: Env): Options {
         if (typeof logged.url === 'string') {
           logged.url = redactUrl(logged.url);
         }
-        return redactSensitive(logged);
+        return redactSensitive({ ...logged, query: redactQuery(logged.query) });
       },
       res: (res: ServerResponse) => pino.stdSerializers.res(res),
       // A failed query is logged without its parameters, whichever module ran it.

@@ -1,5 +1,6 @@
 export { MailModule } from './mail.module.js';
-export { MailService } from './mail.service.js';
+export { MailDeliveryError } from './mail-delivery-error.js';
+export { MAIL_TRANSPORT, MailService } from './mail.service.js';
 export {
   renderMail,
   type MailTemplate,

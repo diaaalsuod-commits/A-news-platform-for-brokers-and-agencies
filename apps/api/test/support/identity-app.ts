@@ -35,10 +35,17 @@ export interface MailMessage {
 
 /**
  * The whole API on Testcontainers (PostGIS, Redis and, when asked, Mailpit), with helpers for the
- * identity tests. Call it inside describe(): it registers that block's hooks. Modules passed in
- * are added to the test application only, never to AppModule.
+ * identity tests. Call it inside describe(): it registers that block's hooks. Modules and
+ * overrides passed in apply to the test application only, never to AppModule.
  */
-export function useIdentityApp(options: { modules?: Type[]; mailpit?: boolean } = {}) {
+export function useIdentityApp(
+  options: {
+    modules?: Type[];
+    mailpit?: boolean;
+    /** Providers replaced in the test application only, for example the SMTP transport. */
+    overrides?: { provide: unknown; useValue: unknown }[];
+  } = {},
+) {
   let postgres: StartedPostgreSqlContainer;
   let redisContainer: StartedTestContainer;
   let mailpit: StartedTestContainer | undefined;
@@ -101,12 +108,15 @@ export function useIdentityApp(options: { modules?: Type[]; mailpit?: boolean } 
       OPS_URL: 'https://ops.localhost',
     });
 
-    const moduleRef = await Test.createTestingModule({
+    let builder = Test.createTestingModule({
       imports: [AppModule, ...(options.modules ?? [])],
     })
       .overrideProvider(LOG_DESTINATION)
-      .useValue(logCapture)
-      .compile();
+      .useValue(logCapture);
+    for (const override of options.overrides ?? []) {
+      builder = builder.overrideProvider(override.provide).useValue(override.useValue);
+    }
+    const moduleRef = await builder.compile();
     app = moduleRef.createNestApplication({ bufferLogs: true });
     app.useLogger(app.get(Logger));
     configureApp(app);
