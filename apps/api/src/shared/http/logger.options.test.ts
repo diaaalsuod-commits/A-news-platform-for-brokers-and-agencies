@@ -1,3 +1,6 @@
+import { Writable } from 'node:stream';
+import { DrizzleQueryError } from 'drizzle-orm';
+import pino from 'pino';
 import { describe, expect, it } from 'vitest';
 import { parseEnv } from '../config/index.js';
 import { buildPinoHttpOptions, LOG_REDACT_PATHS, redactUrl } from './logger.options.js';
@@ -48,5 +51,106 @@ describe('log redaction', () => {
         '*.password',
       ]),
     );
+  });
+});
+
+describe('the logger built from these options', () => {
+  const PHONE = '+971501234567';
+  const WHATSAPP = '+971509876543';
+  const EMAIL = 'sales.manager@developer.example';
+  const HASH = '$argon2id$v=19$m=19456,t=2,p=1$c29tZXNhbHQ$aGFzaGVkLXBhc3N3b3Jk';
+  const QUERY = 'insert into "sales_contacts" ("phone", "whatsapp", "email") values ($1, $2, $3)';
+
+  const failedQuery = () =>
+    new DrizzleQueryError(
+      QUERY,
+      [PHONE, WHATSAPP, EMAIL, HASH],
+      Object.assign(new Error(`duplicate value "${EMAIL}"`), {
+        severity: 'ERROR',
+        code: '23505',
+        detail: `Key (email)=(${EMAIL}) already exists.`,
+        constraint: 'users_email_key',
+      }),
+    );
+
+  /** A real pino logger with the application's options, writing to memory. */
+  function capture() {
+    const lines: string[] = [];
+    const destination = new Writable({
+      write(chunk: Buffer, _encoding, callback) {
+        lines.push(...chunk.toString().split('\n').filter(Boolean));
+        callback();
+      },
+    });
+    const {
+      genReqId: _genReqId,
+      wrapSerializers: _wrapSerializers,
+      ...options
+    } = buildPinoHttpOptions({ ...env, LOG_LEVEL: 'info' });
+    return { logger: pino(options, destination), lines };
+  }
+
+  const expectNoSecret = (lines: string[]) => {
+    const text = lines.join('\n');
+    for (const secret of [PHONE, WHATSAPP, EMAIL, HASH]) {
+      expect(text).not.toContain(secret);
+    }
+    expect(text).not.toContain('params');
+    expect(text).not.toContain('already exists');
+  };
+
+  it('NFR-08 NFR-11 a failed query with a phone, a WhatsApp number, an email and a password hash is logged without any of them', () => {
+    const { logger, lines } = capture();
+    // The three ways an error reaches the log: alone, as nestjs-pino passes it, and as a cause.
+    logger.error(failedQuery());
+    logger.error({ context: 'HttpExceptionFilter', err: failedQuery() });
+    logger.error({ err: new Error('Seeding failed', { cause: failedQuery() }) });
+
+    expect(lines).toHaveLength(3);
+    expectNoSecret(lines);
+    const [alone, fromNest, wrapped] = lines.map(
+      (line) => JSON.parse(line) as { msg: string; err: Record<string, unknown> },
+    );
+    for (const entry of [alone, fromNest]) {
+      expect(entry?.msg).toBe('Database query failed');
+      expect(entry?.err).toMatchObject({
+        type: 'DatabaseError',
+        message: 'Database query failed',
+        query: QUERY,
+        code: '23505',
+        constraint: 'users_email_key',
+      });
+      expect(entry?.err.stack).toMatch(/^\s+at /);
+    }
+    expect(wrapped?.msg).toBe('Seeding failed');
+    expect(wrapped?.err.cause).toMatchObject({ type: 'DatabaseError', code: '23505' });
+  });
+
+  it('NFR-08 NFR-11 phone, WhatsApp, email and passwords are removed from nested objects too', () => {
+    const { logger, lines } = capture();
+    logger.info({
+      msg: 'Contact saved',
+      email: EMAIL,
+      contact: { phone: PHONE, links: [{ whatsapp: WHATSAPP }] },
+      user: { account: { secrets: { passwordHash: HASH, password: 'a-plain-password-1' } } },
+    });
+
+    expectNoSecret(lines);
+    expect(lines.join('\n')).not.toContain('a-plain-password-1');
+    expect(JSON.parse(lines[0] as string)).toMatchObject({
+      msg: 'Contact saved',
+      email: '[Redacted]',
+      contact: { phone: '[Redacted]', links: [{ whatsapp: '[Redacted]' }] },
+      user: { account: { secrets: { passwordHash: '[Redacted]', password: '[Redacted]' } } },
+    });
+  });
+
+  it('an ordinary error is logged as before, with its message and stack', () => {
+    const { logger, lines } = capture();
+    logger.error({ err: new Error('SMTP connection lost') });
+    const entry = JSON.parse(lines[0] as string) as { msg: string; err: { stack: string } };
+    expect(entry.msg).toBe('SMTP connection lost');
+    expect(entry.err).toMatchObject({ type: 'Error', message: 'SMTP connection lost' });
+    expect(entry.err.stack).toContain('Error: SMTP connection lost');
   });
 });

@@ -1,7 +1,9 @@
 import { randomUUID } from 'node:crypto';
 import type { IncomingMessage, ServerResponse } from 'node:http';
+import pino from 'pino';
 import type { Options } from 'pino-http';
 import type { Env } from '../config/index.js';
+import { REDACTED, redactSensitive, serializeError, withSafeMessage } from './log-safety.js';
 
 const REQUEST_ID_HEADER = 'x-request-id';
 const VALID_REQUEST_ID = /^[\w-]{8,128}$/;
@@ -18,6 +20,9 @@ export function assignRequestId(request: IncomingMessage, response: ServerRespon
 /**
  * Never logged (NFR-08): the session and CSRF cookies and header, and any password in a body. pino-http
  * logs no body today; the body paths guard a later change, and *.password covers any logged object.
+ *
+ * pino's paths match fixed depths only. Passwords, phone numbers and emails nested deeper are
+ * removed by key in redactSensitive (log-safety.ts), which every logged object passes through.
  */
 export const LOG_REDACT_PATHS = [
   'req.headers.authorization',
@@ -48,17 +53,31 @@ export function buildPinoHttpOptions(env: Env): Options {
   return {
     level: env.LOG_LEVEL,
     genReqId: assignRequestId,
-    redact: { paths: [...LOG_REDACT_PATHS], censor: '[Redacted]' },
-    // pino-http hands this the already serialized request. The params repeat the path's parts,
-    // a link token among them, so they are left out; the redacted URL already shows the route.
+    redact: { paths: [...LOG_REDACT_PATHS], censor: REDACTED },
+    // Every logged object: sensitive keys are removed at any depth (NFR-08, NFR-11).
+    formatters: { log: (object) => redactSensitive(object) },
+    hooks: {
+      logMethod(args, method) {
+        method.apply(this, withSafeMessage(args) as Parameters<typeof method>);
+      },
+    },
+    // pino-http would otherwise run pino's own error serializer first, which copies the message
+    // and the params of a failed query. With this off, the three serializers below see the raw
+    // request, response and error, and the first two call pino's standard ones themselves.
+    wrapSerializers: false,
     serializers: {
-      req: (req: { url?: string; params?: unknown }) => {
-        const { params: _params, ...logged } = req;
+      // The params repeat the path's parts, a link token among them, so they are left out; the
+      // redacted URL already shows the route.
+      req: (req: IncomingMessage) => {
+        const { params: _params, ...logged } = pino.stdSerializers.req(req);
         if (typeof logged.url === 'string') {
           logged.url = redactUrl(logged.url);
         }
-        return logged;
+        return redactSensitive(logged);
       },
+      res: (res: ServerResponse) => pino.stdSerializers.res(res),
+      // A failed query is logged without its parameters, whichever module ran it.
+      err: (error: unknown) => serializeError(error),
     },
     ...(env.NODE_ENV === 'development' ? { transport: { target: 'pino-pretty' } } : {}),
   };
