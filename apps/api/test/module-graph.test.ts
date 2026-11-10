@@ -77,6 +77,17 @@ describe('module graph (NFR-13, docs/decisions.md P3.1)', () => {
     expect(graph.get('agency')?.has('admin')).toBe(false);
   });
 
+  it('content imports no module except admin (docs/decisions.md P4.1)', () => {
+    const others = [...(graph.get('content') ?? [])].filter((module) => module !== 'admin');
+    expect(others).toEqual([]);
+  });
+
+  it('admin, agency and identity do not import content', () => {
+    for (const module of ['admin', 'agency', 'identity']) {
+      expect(graph.get(module)?.has('content'), module).toBe(false);
+    }
+  });
+
   it('finds a cycle when there is one', () => {
     const cyclic = new Map([
       ['a', new Set(['b'])],

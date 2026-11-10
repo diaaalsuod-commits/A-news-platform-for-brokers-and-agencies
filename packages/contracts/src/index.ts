@@ -2,6 +2,7 @@ export * from './account.js';
 export * from './admin.js';
 export * from './agency.js';
 export * from './auth.js';
+export * from './content.js';
 export * from './enums.js';
 export * from './health.js';
 export * from './lists.js';

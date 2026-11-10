@@ -9,6 +9,10 @@ const ONE_WAY_IDENTITY =
   'docs/decisions.md (P3.1): identity imports no other module; it reaches them through its ports, bound in src/identity-ports.module.ts.';
 const ONE_WAY_AGENCY =
   'docs/decisions.md (P3.1): agency may not import admin; admin imports agency.';
+const ONE_WAY_CONTENT =
+  'docs/decisions.md (P4.1): content may import only admin among the modules; the modules that read content import it.';
+const NOT_INTO_CONTENT =
+  'docs/decisions.md (P4.1): admin and agency may not import content; content imports admin.';
 
 export default [
   ...base,
@@ -96,6 +100,23 @@ export default [
               from: { element: { type: 'module', captured: { module: 'agency' } } },
               disallow: { to: { element: { type: 'module', captured: { module: 'admin' } } } },
               message: ONE_WAY_AGENCY,
+            },
+            // content -> admin -> agency -> identity. Content reaches nothing else, and the
+            // modules below it never reach back, which would close a cycle.
+            {
+              from: { element: { type: 'module', captured: { module: 'content' } } },
+              disallow: {
+                to: { element: { type: 'module', captured: { module: '!(content|admin)' } } },
+              },
+              message: ONE_WAY_CONTENT,
+            },
+            {
+              from: [
+                { element: { type: 'module', captured: { module: 'admin' } } },
+                { element: { type: 'module', captured: { module: 'agency' } } },
+              ],
+              disallow: { to: { element: { type: 'module', captured: { module: 'content' } } } },
+              message: NOT_INTO_CONTENT,
             },
           ],
         },

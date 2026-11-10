@@ -68,6 +68,17 @@ describe('pickName', () => {
     expect(pickName({ nameAr: '   ', nameEn: 'Tower' }, 'ar')).toBe('Tower');
   });
 
+  it('FR-LOC-03 gives an empty name when both languages are missing', () => {
+    expect(pickName({ nameAr: null, nameEn: '  ' }, 'ar')).toBe('');
+    expect(pickName({}, 'en')).toBe('');
+  });
+
+  it('FR-LOC-03 in the Arabic interface the Arabic text appears when it exists', () => {
+    const row = { descriptionAr: 'وصف', descriptionEn: 'Text' };
+    expect(pickDescription(row, 'ar')).toBe('وصف');
+    expect(pickDescription(row, 'en')).toBe('Text');
+  });
+
   it('FR-LOC-03 falls back for descriptions, and gives null when both are missing', () => {
     expect(pickDescription({ descriptionAr: null, descriptionEn: 'Text' }, 'ar')).toBe('Text');
     expect(pickDescription({ descriptionAr: null, descriptionEn: '' }, 'en')).toBeNull();

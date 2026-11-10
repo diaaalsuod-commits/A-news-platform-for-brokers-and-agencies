@@ -46,7 +46,9 @@
     "AED_FIXED": "AED is always enabled and has no exchange rate.",
     "CURRENCY_HAS_NO_RATE": "Enter an exchange rate for this currency before enabling it.",
     "RATE_DATE_IN_FUTURE": "The rate date cannot be later than today (UAE time).",
-    "LAST_AGENCY_ADMIN": "The agency must keep at least one active Agency Admin. This change would leave none."
+    "LAST_AGENCY_ADMIN": "The agency must keep at least one active Agency Admin. This change would leave none.",
+    "DEVELOPER_IN_USE": "This developer is used by projects or sales contacts and cannot be deleted. Archive it instead.",
+    "AREA_IN_USE": "This area is in use and cannot be deleted. Deactivate it instead."
   },
   "email": {
     "invitation": {
