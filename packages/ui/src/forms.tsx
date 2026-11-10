@@ -3,6 +3,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
 import {
+  type BaseSyntheticEvent,
   forwardRef,
   type InputHTMLAttributes,
   type ReactNode,
@@ -10,6 +11,7 @@ import {
   useEffect,
   useId,
   useRef,
+  useState,
 } from 'react';
 import {
   type DefaultValues,
@@ -21,6 +23,7 @@ import {
 } from 'react-hook-form';
 import type { z } from 'zod';
 import { ApiError } from './api/errors';
+import { useErrorText } from './api/hooks';
 import { richTags } from './text';
 
 /**
@@ -65,6 +68,8 @@ export function useZodForm<S extends z.ZodType<FieldValues, FieldValues>>(
     defaultValues,
     mode: 'onSubmit',
     reValidateMode: 'onChange',
+    // ErrorSummary takes the focus after an invalid submit; the fields are listed under it.
+    shouldFocusError: false,
   });
 }
 
@@ -82,7 +87,9 @@ export function applyServerFieldErrors<T extends FieldValues>(
   }
   const matched = error.fieldIssues.filter((issue) => fields.includes(issue.path as Path<T>));
   for (const issue of matched) {
-    form.setError(issue.path as Path<T>, { message: 'validation.invalidFormat' });
+    form.setError(issue.path as Path<T>, {
+      message: issue.code === 'too_small' ? 'validation.required' : 'validation.invalidFormat',
+    });
   }
   return matched.length > 0;
 }
@@ -280,5 +287,90 @@ export function SubmitButton({
     <button type="submit" className="reih-primary" disabled={pending} aria-busy={pending}>
       {pending ? pendingLabel : label}
     </button>
+  );
+}
+
+// ---------------------------------------------------------------- the form pattern
+
+type Outcome = { tone: 'success'; text: ReactNode } | { tone: 'error'; error: unknown } | null;
+
+/** The field names of an object schema, so server field errors land on their fields. */
+function fieldNamesOf(schema: z.ZodType): string[] {
+  const shape = (schema as { shape?: Record<string, unknown> }).shape;
+  return shape && typeof shape === 'object' ? Object.keys(shape) : [];
+}
+
+/**
+ * The one form pattern of every screen: react-hook-form with a zod schema from packages/contracts,
+ * localized field messages, the API's VALIDATION_FAILED issues on their fields, and any other
+ * refusal as a form-level message in the user's language. onSubmit may return a success message.
+ */
+export function useApiForm<S extends z.ZodType<FieldValues, FieldValues>>(
+  schema: S,
+  options: {
+    defaultValues?: DefaultValues<z.input<S>>;
+    onSubmit: (values: z.output<S>) => Promise<ReactNode | void>;
+  },
+) {
+  const form = useZodForm(schema, options.defaultValues);
+  const [outcome, setOutcome] = useState<Outcome>(null);
+  const fields = fieldNamesOf(schema) as Path<z.input<S>>[];
+  const submit = form.handleSubmit(async (values) => {
+    setOutcome(null);
+    try {
+      const done = await options.onSubmit(values);
+      if (done) setOutcome({ tone: 'success', text: done });
+    } catch (error) {
+      if (!applyServerFieldErrors(form, error, fields)) {
+        setOutcome({ tone: 'error', error });
+      }
+    }
+  });
+  return { form, submit, outcome, clearOutcome: () => setOutcome(null) };
+}
+
+/** What ApiForm needs from useApiForm. */
+export interface ApiFormState {
+  form: {
+    formState: { errors: FieldErrors; isSubmitting: boolean; submitCount: number };
+  };
+  submit: (event?: BaseSyntheticEvent) => Promise<void>;
+  outcome: Outcome;
+}
+
+/** Renders a form of the pattern: error summary, the API's message, the fields, and submit. */
+export function ApiForm({
+  api,
+  submitLabel,
+  pendingLabel,
+  secondary,
+  children,
+}: {
+  api: ApiFormState;
+  submitLabel: ReactNode;
+  pendingLabel: ReactNode;
+  /** A second action beside submit, such as Cancel. */
+  secondary?: ReactNode;
+  children: ReactNode;
+}) {
+  const errorText = useErrorText();
+  const { errors, isSubmitting, submitCount } = api.form.formState;
+  return (
+    <>
+      <ErrorSummary errors={errors} submitCount={submitCount} />
+      {api.outcome?.tone === 'success' && (
+        <FormMessage tone="success">{api.outcome.text}</FormMessage>
+      )}
+      {api.outcome?.tone === 'error' && (
+        <FormMessage tone="error">{errorText(api.outcome.error)}</FormMessage>
+      )}
+      <form onSubmit={(event) => void api.submit(event)} noValidate className="reih-form">
+        {children}
+        <div className="reih-actions">
+          <SubmitButton pending={isSubmitting} label={submitLabel} pendingLabel={pendingLabel} />
+          {secondary}
+        </div>
+      </form>
+    </>
   );
 }

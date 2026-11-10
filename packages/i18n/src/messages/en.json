@@ -107,7 +107,8 @@
     "invalidChoice": "Choose one of the options.",
     "passwordsDontMatch": "The two passwords do not match.",
     "termsRequired": "Accept the terms of use and the privacy policy to continue.",
-    "summary": "Please correct the fields marked below."
+    "summary": "Please correct the fields marked below.",
+    "dateInFuture": "Choose today or an earlier date (UAE time)."
   },
   "nav": {
     "skipToContent": "Skip to content",
@@ -115,7 +116,12 @@
     "home": "Home",
     "profile": "Profile",
     "logout": "Log out",
-    "loggingOut": "Logging out…"
+    "loggingOut": "Logging out…",
+    "agencySettings": "Agency settings",
+    "agencies": "Agencies",
+    "staff": "Staff",
+    "referenceData": "Reference data",
+    "currenciesSettings": "Currencies and settings"
   },
   "roles": {
     "broker": "Broker",
@@ -249,6 +255,283 @@
         "terms": "PLACEHOLDER — not legal text. The REIH terms of use, version 1.0, will appear here before delivery. They will cover who may use the platform, how project data may be used with clients, and the user's duties for their account.",
         "privacy": "PLACEHOLDER — not legal text. The REIH privacy policy, version 1.0, will appear here before delivery. It will explain which personal data REIH keeps, why, for how long, and how to ask for a copy or a correction."
       }
+    }
+  },
+  "table": {
+    "sortable": "Sort by this column",
+    "sortedAscending": "Sorted ascending",
+    "sortedDescending": "Sorted descending",
+    "pages": "Pages",
+    "previous": "Previous",
+    "next": "Next",
+    "pageOf": "Page <ltr>{page}</ltr> of <ltr>{pages}</ltr>"
+  },
+  "dialog": {
+    "close": "Close",
+    "cancel": "Cancel",
+    "working": "Working…",
+    "reason": "Reason"
+  },
+  "accounts": {
+    "columns": {
+      "name": "Name",
+      "email": "Email",
+      "role": "Role",
+      "status": "Status",
+      "lastLogin": "Last login",
+      "actions": "Actions"
+    },
+    "status": {
+      "invited": "Invited",
+      "active": "Active",
+      "deactivated": "Deactivated"
+    },
+    "noName": "No name yet",
+    "you": "You",
+    "invitedHint": "Resend or cancel the invitation",
+    "changeRole": "Change role",
+    "deactivate": "Deactivate",
+    "reactivate": "Reactivate",
+    "deactivateTitle": "Deactivate this account?",
+    "reactivateTitle": "Reactivate this account?",
+    "deactivateBody": "<strong>{name}</strong> will be logged out at once and will not be able to log in until reactivated.",
+    "reactivateBody": "<strong>{name}</strong> will be able to log in again with their password.",
+    "changeRoleTitle": "Change role",
+    "changeRoleBody": "Choose the new role of <strong>{name}</strong>. It applies at once."
+  },
+  "invitations": {
+    "columns": {
+      "email": "Email",
+      "role": "Role",
+      "state": "State",
+      "expires": "Expires",
+      "lastSent": "Last sent",
+      "actions": "Actions"
+    },
+    "state": {
+      "pending": "Pending",
+      "expired": "Expired"
+    },
+    "resend": "Resend",
+    "cancel": "Cancel invitation",
+    "resendTitle": "Resend this invitation?",
+    "cancelTitle": "Cancel this invitation?",
+    "resendBody": "A new link is sent to <ltr>{email}</ltr>. The previous link stops working.",
+    "cancelBody": "The link sent to <ltr>{email}</ltr> stops working.",
+    "language": "Email language",
+    "languageHint": "The invited person also starts in this language.",
+    "languageDefault": "My language"
+  },
+  "admin": {
+    "agencies": {
+      "title": "Agencies",
+      "caption": "Agencies",
+      "search": "Search by name or trade license",
+      "apply": "Apply",
+      "new": "New agency",
+      "empty": "There are no agencies yet.",
+      "noMatch": "No agency matches these filters.",
+      "back": "← All agencies",
+      "details": "Agency details",
+      "statusTitle": "Status",
+      "reason": "Reason",
+      "changedAt": "Changed",
+      "suspendHint": "Suspending logs every member out at once; they cannot log in until the agency is reactivated. Their data is kept.",
+      "suspend": "Suspend",
+      "reactivate": "Reactivate",
+      "suspendTitle": "Suspend this agency",
+      "reactivateTitle": "Reactivate this agency",
+      "suspendBody": "Suspend <strong>{name}</strong>? Its members are logged out at once. A reason is required.",
+      "reactivateBody": "Reactivate <strong>{name}</strong>? Its members can log in again. A reason is required.",
+      "columns": {
+        "name": "Name",
+        "nameAr": "Arabic name",
+        "license": "Trade license",
+        "email": "Contact email",
+        "status": "Status",
+        "created": "Created"
+      },
+      "status": {
+        "all": "All",
+        "active": "Active",
+        "suspended": "Suspended"
+      },
+      "form": {
+        "nameAr": "Name in Arabic",
+        "nameEn": "Name in English",
+        "tradeLicenseNo": "Trade license number",
+        "contactEmail": "Contact email",
+        "contactPhone": "Contact phone",
+        "phoneHint": "International format, for example <ltr>+971501234567</ltr>.",
+        "create": "Create agency",
+        "save": "Save changes",
+        "saved": "The agency was saved."
+      },
+      "invite": {
+        "title": "Agency Admin invitations",
+        "suspendedHint": "This agency is suspended. Reactivate it before inviting anyone.",
+        "submit": "Invite Agency Admin",
+        "sent": "An invitation was sent to <ltr>{email}</ltr>.",
+        "pending": "Open invitations",
+        "empty": "There are no open invitations."
+      }
+    },
+    "staff": {
+      "title": "Staff",
+      "pending": "Open staff invitations",
+      "noPending": "There are no open staff invitations.",
+      "members": "Staff accounts",
+      "lastAdminHint": "At least one active Platform Admin always remains. You cannot change your own account here.",
+      "empty": "There are no staff accounts.",
+      "invite": {
+        "title": "Invite staff",
+        "submit": "Send invitation",
+        "sent": "An invitation was sent to <ltr>{email}</ltr>."
+      }
+    },
+    "reference": {
+      "title": "Reference data",
+      "intro": "An item in use cannot be deleted. Deactivate it instead: it then no longer appears in new selections.",
+      "kinds": {
+        "property-types": "Property types",
+        "layouts": "Layouts",
+        "unit-levels": "Unit levels",
+        "furnishing-types": "Furnishing",
+        "unit-tags": "Unit tags",
+        "amenity-categories": "Amenity categories",
+        "amenities": "Amenities"
+      },
+      "columns": {
+        "code": "Code",
+        "nameEn": "English name",
+        "nameAr": "Arabic name",
+        "category": "Category",
+        "bedrooms": "Bedrooms",
+        "icon": "Icon key",
+        "sortOrder": "Order",
+        "active": "State",
+        "actions": "Actions"
+      },
+      "active": "Active",
+      "inactive": "Inactive",
+      "edit": "Edit",
+      "deactivate": "Deactivate",
+      "activate": "Activate",
+      "delete": "Delete",
+      "new": "New item",
+      "empty": "This list is empty.",
+      "editTitle": "Edit item",
+      "newTitle": "New item",
+      "deleteTitle": "Delete this item?",
+      "deleteBody": "\"{name}\" will be deleted. An item in use cannot be deleted; deactivate it instead.",
+      "save": "Save",
+      "create": "Create",
+      "codeHint": "Lower-case letters, digits and _; it cannot change later.",
+      "codeFixed": "the code cannot change",
+      "chooseCategory": "Choose a category",
+      "iconHint": "Icons are shown by key for now.",
+      "noIcon": "No icon",
+      "activeField": "Active (offered in new selections)"
+    },
+    "currencies": {
+      "title": "Currencies and settings",
+      "currenciesTitle": "Display currencies",
+      "intro": "Prices stay in AED. A currency needs a rate before it can be enabled; the first rate enables it. A new rate applies at once.",
+      "columns": {
+        "code": "Code",
+        "name": "Currency",
+        "enabled": "Display",
+        "latest": "Latest rate",
+        "actions": "Actions",
+        "effectiveDate": "Effective date",
+        "aedPerUnit": "AED per unit",
+        "enteredAt": "Entered"
+      },
+      "rateValue": "<ltr>{value}</ltr> AED per <ltr>1 {code}</ltr>",
+      "rateDate": "from <ltr>{date}</ltr>",
+      "alwaysOn": "Always on",
+      "enabled": "Enabled",
+      "disabled": "Disabled",
+      "baseCurrency": "Prices are stored in AED",
+      "noRate": "No rate yet",
+      "enable": "Enable",
+      "disable": "Disable",
+      "rates": "Rates",
+      "empty": "There are no currencies.",
+      "ratesTitle": "Rates of <ltr>{code}</ltr>, newest first",
+      "addRate": "Add rate",
+      "rateSaved": "The rate was saved and applies at once.",
+      "aedPerUnitLabel": "AED per 1 <ltr>{code}</ltr>",
+      "aedPerUnitHint": "Greater than 0, up to 8 decimals, for example 3.6725.",
+      "effectiveDateHint": "Today or an earlier day, UAE time.",
+      "historyCaption": "Rate history of <ltr>{code}</ltr>",
+      "noRates": "No rate has been entered for this currency."
+    },
+    "settings": {
+      "title": "Settings",
+      "staleThresholdDays": "Stale data after (days)",
+      "invitationValidityDays": "Invitation valid for (days)",
+      "dailyRevealLimit": "Daily contact reveals per user",
+      "revealLimitLater": "Stored now; it applies once the daily limit is delivered.",
+      "range": "From <ltr>{min}</ltr> to <ltr>{max}</ltr>.",
+      "save": "Save settings",
+      "saved": "The settings were saved and apply at once.",
+      "updatedAt": "Last changed:"
+    }
+  },
+  "agencySettings": {
+    "title": "Agency settings",
+    "tabs": {
+      "branding": "Branding",
+      "members": "Members",
+      "invitations": "Invitations"
+    },
+    "branding": {
+      "title": "Branding",
+      "defaultHint": "These are the default values until you save your branding.",
+      "marketingName": "Marketing name",
+      "primaryColor": "Primary color",
+      "secondaryColor": "Secondary color",
+      "pick": "Pick {name}",
+      "colorHint": "A hex color such as #1F3A5F.",
+      "phone": "Phone",
+      "phoneHint": "International format, for example <ltr>+971501234567</ltr>.",
+      "email": "Email",
+      "website": "Website",
+      "websiteHint": "Starts with https://",
+      "address": "Address",
+      "orn": "ORN",
+      "ornHint": "Office Registration Number: 3 to 10 digits.",
+      "save": "Save branding",
+      "saved": "The branding was saved. New catalogs use it; earlier PDFs do not change.",
+      "preview": "Preview"
+    },
+    "logo": {
+      "title": "Logo",
+      "file": "Logo file",
+      "hint": "PNG or SVG, at most <ltr>2 MB</ltr>.",
+      "svgNote": "SVG logos are cleaned for safety. Shapes drawn with <code>use</code> elements are removed, so such a logo can lose parts. PNG is safer.",
+      "choose": "Choose a file first.",
+      "wrongType": "Choose a PNG or SVG file.",
+      "tooLarge": "The file is larger than 2 MB.",
+      "upload": "Upload logo",
+      "uploading": "Uploading…",
+      "uploaded": "The logo was saved.",
+      "remove": "Remove logo",
+      "removeTitle": "Remove the logo?",
+      "removeBody": "New catalogs will have no logo until you upload one. Earlier PDFs do not change."
+    },
+    "members": {
+      "title": "Members",
+      "lastAdminHint": "The agency always keeps one active Agency Admin. You cannot change your own role or deactivate yourself.",
+      "empty": "There are no members yet."
+    },
+    "invitations": {
+      "title": "Invite a member",
+      "submit": "Send invitation",
+      "sent": "An invitation was sent to <ltr>{email}</ltr>.",
+      "pending": "Open invitations",
+      "empty": "There are no open invitations."
     }
   }
 }

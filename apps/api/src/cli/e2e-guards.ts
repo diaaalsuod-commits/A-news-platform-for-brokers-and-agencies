@@ -22,11 +22,11 @@ const isLocalHost = (url: string): boolean => {
  */
 export function assertE2eAllowed(env: E2eGuardEnv): void {
   if (env.NODE_ENV === 'production') {
-    throw new SeedRefused('e2e:invite never runs when NODE_ENV is production.');
+    throw new SeedRefused('The e2e commands never run when NODE_ENV is production.');
   }
   if (!isLocalHost(env.APP_URL) || !isLocalHost(env.OPS_URL)) {
     throw new SeedRefused(
-      `e2e:invite runs only when APP_URL and OPS_URL are on a host ending with "${LOCAL_HOST_SUFFIX}".`,
+      `The e2e commands run only when APP_URL and OPS_URL are on a host ending with "${LOCAL_HOST_SUFFIX}".`,
     );
   }
 }

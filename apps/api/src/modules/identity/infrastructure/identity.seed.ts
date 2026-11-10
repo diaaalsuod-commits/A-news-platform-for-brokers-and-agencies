@@ -114,3 +114,29 @@ export async function seedDemoAgencyUsers(
   await db.insert(users).values(rows).onConflictDoNothing();
   return rows.map((row) => row.email);
 }
+
+/**
+ * The end-to-end tests' Platform Admin (src/cli/e2e-platform-admin.ts only; local stacks only): an
+ * active account that logs in with the given password. Returns its id.
+ */
+export async function createActivePlatformAdmin(
+  db: SeedDb,
+  account: { email: string; password: string; fullName: string },
+): Promise<string> {
+  if (!isAcceptablePassword(account.password)) {
+    throw new SeedRefused(
+      `The password must have ${MIN_PASSWORD_LENGTH} to ${MAX_PASSWORD_LENGTH} characters.`,
+    );
+  }
+  const [created] = await db
+    .insert(users)
+    .values({
+      email: account.email,
+      passwordHash: await hashPassword(account.password),
+      role: 'platform_admin',
+      status: 'active',
+      fullName: account.fullName,
+    })
+    .returning({ id: users.id });
+  return (created as { id: string }).id;
+}

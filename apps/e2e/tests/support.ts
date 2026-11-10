@@ -45,3 +45,23 @@ export async function activationLinkFor(email: string): Promise<string> {
   expect(link, 'the invitation email carries an activation link').toBeTruthy();
   return link as string;
 }
+
+/**
+ * A fresh, active Platform Admin with a random password, through the e2e:platform-admin command
+ * (local stacks only; never an HTTP endpoint).
+ */
+export function createPlatformAdmin(): { email: string; password: string } {
+  const output = execSync('pnpm --silent --filter @reih/api e2e:platform-admin', {
+    cwd: REPO_ROOT,
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+  const line = output.split('\n').find((entry) => entry.startsWith('E2E_PLATFORM_ADMIN '));
+  if (!line) {
+    throw new Error(`e2e:platform-admin printed no result:\n${output}`);
+  }
+  return JSON.parse(line.slice('E2E_PLATFORM_ADMIN '.length)) as {
+    email: string;
+    password: string;
+  };
+}

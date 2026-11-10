@@ -1,6 +1,6 @@
 'use client';
 
-import type { MeResponse } from '@reih/contracts';
+import type { MeResponse, UserRole } from '@reih/contracts';
 import { isLocale, type Locale, locales } from '@reih/i18n';
 import { useQueryClient } from '@tanstack/react-query';
 import { useLocale, useTranslations } from 'next-intl';
@@ -15,19 +15,29 @@ import {
   useLogout,
   useMe,
 } from './api/hooks';
+import { ApiError } from './api/errors';
 import { withLocale } from './api/safe-next';
-import { servesRole } from './app-config';
+import { navItemsFor, servesRole } from './app-config';
 import { Link } from './navigation';
 
 /** Every page: a skip link, a header and the main landmark (NFR-14). */
-export function PageFrame({ header, children }: { header: ReactNode; children: ReactNode }) {
+export function PageFrame({
+  header,
+  children,
+  wide = false,
+}: {
+  header: ReactNode;
+  children: ReactNode;
+  /** Tables and admin screens use the full width. */
+  wide?: boolean;
+}) {
   const t = useTranslations('nav');
   return (
     <>
       <a href="#main" className="reih-skip-link">
         {t('skipToContent')}
       </a>
-      <div className="reih-page">
+      <div className="reih-page" data-wide={wide ? 'true' : undefined}>
         {header}
         <main id="main" tabIndex={-1}>
           {children}
@@ -53,17 +63,21 @@ export function PublicHeader() {
   );
 }
 
-/** Header of the pages behind a login. */
-export function AppHeader() {
+/** Header of the pages behind a login, with the links the user's role may use (FR-ACC-04). */
+export function AppHeader({ role }: { role: UserRole }) {
   const t = useTranslations('nav');
+  const app = useApp();
   const logout = useLogout();
   const [leaving, setLeaving] = useState(false);
   return (
     <header className="reih-header">
       <AppTitle />
       <nav aria-label={t('main')} className="reih-nav">
-        <Link href="/">{t('home')}</Link>
-        <Link href="/profile">{t('profile')}</Link>
+        {navItemsFor(app, role).map((item) => (
+          <Link key={item.href} href={item.href}>
+            {t(item.label)}
+          </Link>
+        ))}
       </nav>
       <div className="reih-header-actions">
         <LanguageSwitch />
@@ -177,7 +191,16 @@ export function LoadState({
  * user to log in. A user of the other app is logged out here and sees the "no access" page. The
  * saved language wins: a page opened in the other language is reopened in the saved one.
  */
-export function AuthGate({ children }: { children: (me: MeResponse) => ReactNode }) {
+export function AuthGate({
+  children,
+  roles,
+  wide = false,
+}: {
+  children: (me: MeResponse) => ReactNode;
+  /** The roles this screen is for; another role sees the FORBIDDEN message. The API decides. */
+  roles?: readonly UserRole[];
+  wide?: boolean;
+}) {
   const t = useTranslations('state');
   const app = useApp();
   const locale = useLocale();
@@ -225,5 +248,16 @@ export function AuthGate({ children }: { children: (me: MeResponse) => ReactNode
       </PageFrame>
     );
   }
-  return <PageFrame header={<AppHeader />}>{children(me.data)}</PageFrame>;
+  const allowed = roles === undefined || roles.includes(me.data.role);
+  return (
+    <PageFrame header={<AppHeader role={me.data.role} />} wide={wide}>
+      {allowed ? (
+        children(me.data)
+      ) : (
+        <div role="alert" className="reih-alert" data-tone="error">
+          <p>{errorText(new ApiError('FORBIDDEN', 403))}</p>
+        </div>
+      )}
+    </PageFrame>
+  );
 }

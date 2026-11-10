@@ -16,7 +16,8 @@
     "db:seed:admin": "node --env-file-if-exists=../../.env dist/cli/seed.js admin",
     "db:seed:demo": "node --env-file-if-exists=../../.env dist/cli/seed.js demo",
     "db:seed:load": "node --env-file-if-exists=../../.env dist/cli/seed.js load",
-    "e2e:invite": "node --env-file-if-exists=../../.env dist/cli/e2e-invite.js"
+    "e2e:invite": "node --env-file-if-exists=../../.env dist/cli/e2e-invite.js",
+    "e2e:platform-admin": "node --env-file-if-exists=../../.env dist/cli/e2e-platform-admin.js"
   },
   "dependencies": {
     "@nestjs/common": "catalog:",

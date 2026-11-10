@@ -2,7 +2,7 @@
 
 One box per FR and NFR in docs/srs.md (SRS v3.1). When you tick an ID, update its module counter and the total.
 
-**Total: 6 / 95 done** (78 FR: 64 Must, 14 Should; 17 NFR)
+**Total: 12 / 95 done** (78 FR: 64 Must, 14 Should; 17 NFR)
 
 ## ACC: Accounts and access
 
@@ -17,12 +17,12 @@ One box per FR and NFR in docs/srs.md (SRS v3.1). When you tick an ID, update it
 
 ## AGY: Agency and team
 
-**0 / 4 done** (4 Must, 0 Should)
+**3 / 4 done** (4 Must, 0 Should)
 
-- [ ] FR-AGY-01 (Must) Manage agency branding — backend done; broker-web screen and catalog check pending
-- [ ] FR-AGY-02 (Must) Invite members, resend or cancel invitations — backend done; broker-web screen pending
-- [ ] FR-AGY-03 (Must) See members and pending invitations — backend done; broker-web screen pending
-- [ ] FR-AGY-04 (Must) Change member role, deactivate or reactivate member — backend done; broker-web screen pending
+- [ ] FR-AGY-01 (Must) Manage agency branding — backend and screen done; catalog check pending
+- [x] FR-AGY-02 (Must) Invite members, resend or cancel invitations
+- [x] FR-AGY-03 (Must) See members and pending invitations
+- [x] FR-AGY-04 (Must) Change member role, deactivate or reactivate member
 
 ## MAP: Map
 
@@ -129,14 +129,14 @@ One box per FR and NFR in docs/srs.md (SRS v3.1). When you tick an ID, update it
 
 ## ADM: Platform administration
 
-**0 / 10 done** (6 Must, 4 Should)
+**3 / 10 done** (6 Must, 4 Should)
 
-- [ ] FR-ADM-01 (Must) Manage agencies, first Agency Admin invitation — backend done; ops-web screen pending
-- [ ] FR-ADM-02 (Must) Suspend or reactivate agency — backend done; ops-web screen pending
-- [ ] FR-ADM-03 (Must) Manage staff accounts and invitations — backend done; ops-web screen pending
-- [ ] FR-ADM-04 (Must) Manage reference data — backend done; ops-web screen and content forms pending
-- [ ] FR-ADM-05 (Must) Display currencies and dated exchange rates — backend done; ops-web screen and catalog rate pending
-- [ ] FR-ADM-06 (Must) Settings: stale threshold, invitation validity, reveal limit — backend done; ops-web screen pending
+- [x] FR-ADM-01 (Must) Manage agencies, first Agency Admin invitation
+- [x] FR-ADM-02 (Must) Suspend or reactivate agency
+- [x] FR-ADM-03 (Must) Manage staff accounts and invitations
+- [ ] FR-ADM-04 (Must) Manage reference data — backend and screen done; content forms pending
+- [ ] FR-ADM-05 (Must) Display currencies and dated exchange rates — backend and screen done; converted prices and catalog rate pending
+- [ ] FR-ADM-06 (Must) Settings: stale threshold, invitation validity, reveal limit — backend and screen done; stale badges pending
 - [ ] FR-ADM-07 (Should) Review reveal log
 - [ ] FR-ADM-08 (Should) Audit log of administrative actions
 - [ ] FR-ADM-09 (Should) Member limit per agency
