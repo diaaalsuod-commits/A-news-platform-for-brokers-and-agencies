@@ -7,7 +7,7 @@ import type { INestApplication, Type } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { hash } from '@node-rs/argon2';
 import type { UserRole, UserStatus } from '@reih/contracts';
-import { PostgreSqlContainer, type StartedPostgreSqlContainer } from '@testcontainers/postgresql';
+import type { StartedPostgreSqlContainer } from '@testcontainers/postgresql';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { migrate } from 'drizzle-orm/node-postgres/migrator';
 import { Redis } from 'ioredis';
@@ -19,6 +19,7 @@ import { afterAll, beforeAll, beforeEach, expect, vi } from 'vitest';
 import { AppModule } from '../../src/app.module.js';
 import { API_PREFIX, configureApp } from '../../src/app.setup.js';
 import { LOG_DESTINATION } from '../../src/shared/http/index.js';
+import { startPostgis } from './postgres.js';
 
 const MIGRATIONS = join(import.meta.dirname, '../../drizzle');
 export const PASSWORD = 'correct-horse-battery-1';
@@ -69,7 +70,7 @@ export function useIdentityApp(
 
   beforeAll(async () => {
     [postgres, redisContainer, mailpit, passwordHash] = await Promise.all([
-      new PostgreSqlContainer('postgis/postgis:16-3.4').start(),
+      startPostgis(),
       new GenericContainer('redis:7')
         .withExposedPorts(6379)
         .withWaitStrategy(Wait.forLogMessage('Ready to accept connections'))

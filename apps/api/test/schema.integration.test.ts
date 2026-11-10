@@ -1,11 +1,12 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { PostgreSqlContainer, type StartedPostgreSqlContainer } from '@testcontainers/postgresql';
+import type { StartedPostgreSqlContainer } from '@testcontainers/postgresql';
 import { sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { migrate } from 'drizzle-orm/node-postgres/migrator';
 import pg from 'pg';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { startPostgis } from './support/postgres.js';
 import { DatabaseService } from '../src/shared/database/index.js';
 
 const MIGRATIONS = join(import.meta.dirname, '../drizzle');
@@ -136,7 +137,7 @@ describe('database schema', () => {
   };
 
   beforeAll(async () => {
-    container = await new PostgreSqlContainer('postgis/postgis:16-3.4').start();
+    container = await startPostgis();
     admin = new pg.Pool({ connectionString: container.getConnectionUri() });
 
     // The image installs PostGIS in its own database. New databases start without any extension,

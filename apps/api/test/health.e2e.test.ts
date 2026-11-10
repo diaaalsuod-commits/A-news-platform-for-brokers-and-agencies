@@ -1,12 +1,13 @@
 import { Test } from '@nestjs/testing';
 import type { INestApplication } from '@nestjs/common';
 import { healthResponseSchema } from '@reih/contracts';
-import { PostgreSqlContainer, type StartedPostgreSqlContainer } from '@testcontainers/postgresql';
+import type { StartedPostgreSqlContainer } from '@testcontainers/postgresql';
 import request from 'supertest';
 import { GenericContainer, type StartedTestContainer, Wait } from 'testcontainers';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { AppModule } from '../src/app.module.js';
 import { API_PREFIX, configureApp } from '../src/app.setup.js';
+import { startPostgis } from './support/postgres.js';
 
 describe('GET /api/v1/health', () => {
   let postgres: StartedPostgreSqlContainer;
@@ -15,7 +16,7 @@ describe('GET /api/v1/health', () => {
 
   beforeAll(async () => {
     [postgres, redis] = await Promise.all([
-      new PostgreSqlContainer('postgis/postgis:16-3.4').start(),
+      startPostgis(),
       new GenericContainer('redis:7')
         .withExposedPorts(6379)
         .withWaitStrategy(Wait.forLogMessage('Ready to accept connections'))

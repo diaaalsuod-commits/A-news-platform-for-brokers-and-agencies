@@ -1,12 +1,13 @@
 import { mkdtempSync, readdirSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { PostgreSqlContainer, type StartedPostgreSqlContainer } from '@testcontainers/postgresql';
+import type { StartedPostgreSqlContainer } from '@testcontainers/postgresql';
 import { verify } from '@node-rs/argon2';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { migrate } from 'drizzle-orm/node-postgres/migrator';
 import pg from 'pg';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { startPostgis } from './support/postgres.js';
 import { runSeedCommand } from '../src/cli/seed-commands.js';
 import { readSeedReferences } from '../src/modules/admin/index.js';
 import {
@@ -85,7 +86,7 @@ describe('seeds', () => {
   };
 
   beforeAll(async () => {
-    container = await new PostgreSqlContainer('postgis/postgis:16-3.4').start();
+    container = await startPostgis();
     admin = new pg.Pool({ connectionString: container.getConnectionUri() });
     filesDir = mkdtempSync(join(tmpdir(), 'reih-seeds-'));
   });
