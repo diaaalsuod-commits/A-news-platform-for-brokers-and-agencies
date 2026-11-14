@@ -1,11 +1,5 @@
+import { isFutureUaeDate } from '../../../shared/localization/index.js';
 import type { Issue } from './issues.js';
-
-const UAE_OFFSET_MS = 4 * 60 * 60_000;
-
-/** The UAE calendar day of an instant, as YYYY-MM-DD (NFR-06). */
-export function uaeToday(now: Date): string {
-  return new Date(now.getTime() + UAE_OFFSET_MS).toISOString().slice(0, 10);
-}
 
 /**
  * FR-DAT-02: the verification date and its source come together or not at all, and the date is a
@@ -22,7 +16,7 @@ export function verificationIssue(
   if (verifiedAt === null && verificationSource !== null) {
     return { path: 'verifiedAt', code: 'required' };
   }
-  if (verifiedAt !== null && verifiedAt > uaeToday(now)) {
+  if (verifiedAt !== null && isFutureUaeDate(verifiedAt, now)) {
     return { path: 'verifiedAt', code: 'in_future' };
   }
   return null;

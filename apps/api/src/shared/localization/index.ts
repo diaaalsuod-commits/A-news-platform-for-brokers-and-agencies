@@ -8,3 +8,4 @@ export {
   formatNumber,
 } from './formatters.js';
 export { pickDescription, pickName } from './names.js';
+export { isFutureUaeDate, uaeDate, uaeDayStart, uaeDaysBetween } from './uae-day.js';

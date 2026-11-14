@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { BASE_CURRENCY, type CurrencyListResponse, type PageQuery } from '@reih/contracts';
-import { canonicalRate, uaeDate } from '../domain/rates.js';
+import { uaeDate } from '../../../shared/localization/index.js';
+import { canonicalRate } from '../domain/rates.js';
 import { AdminReadRepository } from '../infrastructure/admin-read.repository.js';
 import { CurrencyRepository } from '../infrastructure/currency.repository.js';
 

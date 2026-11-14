@@ -1,4 +1,3 @@
-import type { ReadStream } from 'node:fs';
 import type { Readable } from 'node:stream';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import {
@@ -10,7 +9,7 @@ import {
   type UpdateDeveloperRequest,
 } from '@reih/contracts';
 import { isForeignKeyViolation } from '../../../shared/database/index.js';
-import { downloadHeaders, FileStorage } from '../../../shared/files/index.js';
+import { type FileDownload, FileStorage } from '../../../shared/files/index.js';
 import { AppError } from '../../../shared/http/index.js';
 import { DEVELOPER_LOGO_DIRECTORY, developerLogoUrl } from '../domain/developer.js';
 import { DeveloperRepository, type DeveloperRow } from '../infrastructure/developer.repository.js';
@@ -126,15 +125,9 @@ export class DeveloperService {
   }
 
   /** The logo with the headers every download carries (nosniff, and a CSP for SVG). */
-  async openLogo(id: string): Promise<{ stream: ReadStream; headers: Record<string, string> }> {
+  async openLogo(id: string): Promise<FileDownload> {
     const key = (await this.developers.findById(id))?.logoPath;
     if (!key) throw notFound();
-    // The same few lines as AgencyService.openLogo; they move to shared/files with a third use.
-    const stream = this.files.openRead(key);
-    await new Promise<void>((resolve, reject) => {
-      stream.once('open', () => resolve());
-      stream.once('error', () => reject(notFound()));
-    });
-    return { stream, headers: downloadHeaders(key) };
+    return this.files.openDownload(key);
   }
 }

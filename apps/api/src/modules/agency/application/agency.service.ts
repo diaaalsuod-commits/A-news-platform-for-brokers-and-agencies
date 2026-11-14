@@ -1,4 +1,3 @@
-import type { ReadStream } from 'node:fs';
 import type { Readable } from 'node:stream';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import {
@@ -14,7 +13,7 @@ import {
 } from '@reih/contracts';
 import { isUniqueViolation } from '../../../shared/database/index.js';
 import { AgencySuspended, EventBus } from '../../../shared/events/index.js';
-import { downloadHeaders, FileStorage } from '../../../shared/files/index.js';
+import { type FileDownload, FileStorage } from '../../../shared/files/index.js';
 import { AppError } from '../../../shared/http/index.js';
 import {
   AGENCY_TRANSITIONS,
@@ -228,17 +227,10 @@ export class AgencyService {
   }
 
   /** The agency's logo with the headers every download carries (nosniff, and a CSP for SVG). */
-  async openLogo(
-    agencyId: string,
-  ): Promise<{ stream: ReadStream; headers: Record<string, string> }> {
+  async openLogo(agencyId: string): Promise<FileDownload> {
     const key = (await this.branding.find(agencyId))?.logoPath;
     if (!key) throw notFound();
-    const stream = this.files.openRead(key);
-    await new Promise<void>((resolve, reject) => {
-      stream.once('open', () => resolve());
-      stream.once('error', () => reject(notFound()));
-    });
-    return { stream, headers: downloadHeaders(key) };
+    return this.files.openDownload(key);
   }
 }
 

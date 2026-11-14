@@ -8,6 +8,7 @@ import { HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { ENV, type Env } from '../config/index.js';
 import { AppError } from '../http/app-error.js';
 import { detectBinaryKind, type FileKind, fileKinds, HEAD_BYTES } from './file-types.js';
+import { downloadHeaders } from './signed-urls.js';
 import { isSvgDocument, sanitizeSvg } from './svg.js';
 
 export interface SaveFileOptions {
@@ -17,6 +18,12 @@ export interface SaveFileOptions {
   maxBytes: number;
   /** The types the caller accepts. The real type decides, never the file's name. */
   allowed: readonly FileKind[];
+}
+
+/** A stored file opened for a download, with the headers every download carries. */
+export interface FileDownload {
+  stream: ReadStream;
+  headers: Record<string, string>;
 }
 
 export interface StoredFile {
@@ -119,6 +126,20 @@ export class FileStorage {
 
   openRead(key: string): ReadStream {
     return createReadStream(this.pathOf(key));
+  }
+
+  /**
+   * Opens a stored file for a download behind the session (logos, profile photos, media), with
+   * downloadHeaders(): its stored type, nosniff, and a CSP for SVG. A file that is missing on disk
+   * answers 404 NOT_FOUND, once the stream has tried to open it.
+   */
+  async openDownload(key: string): Promise<FileDownload> {
+    const stream = this.openRead(key);
+    await new Promise<void>((resolve, reject) => {
+      stream.once('open', () => resolve());
+      stream.once('error', () => reject(new AppError('NOT_FOUND', HttpStatus.NOT_FOUND)));
+    });
+    return { stream, headers: downloadHeaders(key) };
   }
 
   async remove(key: string): Promise<void> {

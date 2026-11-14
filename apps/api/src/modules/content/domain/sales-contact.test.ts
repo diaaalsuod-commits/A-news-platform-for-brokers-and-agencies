@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { assignmentIssue, uaeToday, verificationIssue } from './sales-contact.js';
+import { assignmentIssue, verificationIssue } from './sales-contact.js';
 
 const DEVELOPER_A = 'developer-a';
 const DEVELOPER_B = 'developer-b';
@@ -7,11 +7,6 @@ const DEVELOPER_B = 'developer-b';
 describe('sales contact verification', () => {
   // 21:00 UTC on 8 November is already 9 November in the UAE.
   const now = new Date('2026-11-08T21:00:00Z');
-
-  it('NFR-06 today is the UAE calendar day', () => {
-    expect(uaeToday(new Date('2026-11-08T19:59:59Z'))).toBe('2026-11-08');
-    expect(uaeToday(now)).toBe('2026-11-09');
-  });
 
   it('FR-DAT-02 the verification date and source come together or not at all', () => {
     expect(verificationIssue({ verifiedAt: null, verificationSource: null }, now)).toBeNull();

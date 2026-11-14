@@ -9,13 +9,8 @@ import {
   type PageQuery,
 } from '@reih/contracts';
 import { AppError } from '../../../shared/http/index.js';
-import {
-  canonicalRate,
-  effectiveAtOf,
-  isFutureUaeDate,
-  normaliseRate,
-  uaeDate,
-} from '../domain/rates.js';
+import { isFutureUaeDate, uaeDate } from '../../../shared/localization/index.js';
+import { canonicalRate, effectiveAtOf, normaliseRate } from '../domain/rates.js';
 import {
   CurrencyRepository,
   type CurrencyRow,

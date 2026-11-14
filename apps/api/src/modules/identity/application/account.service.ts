@@ -1,4 +1,3 @@
-import type { ReadStream } from 'node:fs';
 import type { Readable } from 'node:stream';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import {
@@ -6,7 +5,7 @@ import {
   type UpdatePreferencesRequest,
   type UpdateProfileRequest,
 } from '@reih/contracts';
-import { downloadHeaders, FileStorage } from '../../../shared/files/index.js';
+import { type FileDownload, FileStorage } from '../../../shared/files/index.js';
 import { AppError } from '../../../shared/http/index.js';
 import { UserRepository } from '../infrastructure/user.repository.js';
 import { CurrencyPolicyPort } from './ports.js';
@@ -69,18 +68,11 @@ export class AccountService {
   }
 
   /** The caller's own photo, with the headers every download carries. */
-  async openPhoto(
-    userId: string,
-  ): Promise<{ stream: ReadStream; headers: Record<string, string> }> {
+  async openPhoto(userId: string): Promise<FileDownload> {
     const key = (await this.users.findProfile(userId))?.photoPath;
     if (!key) {
       throw new AppError('NOT_FOUND', HttpStatus.NOT_FOUND);
     }
-    const stream = this.files.openRead(key);
-    await new Promise<void>((resolve, reject) => {
-      stream.once('open', () => resolve());
-      stream.once('error', () => reject(new AppError('NOT_FOUND', HttpStatus.NOT_FOUND)));
-    });
-    return { stream, headers: downloadHeaders(key) };
+    return this.files.openDownload(key);
   }
 }

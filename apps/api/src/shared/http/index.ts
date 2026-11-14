@@ -4,7 +4,12 @@ export { HttpExceptionFilter } from './http-exception.filter.js';
 export { HttpModule } from './http.module.js';
 export { LOG_DESTINATION, LogDestinationModule } from './log-destination.js';
 export { buildPinoHttpOptions, LOG_REDACT_PATHS, redactUrl } from './logger.options.js';
-export { readSingleFile, type SingleFileOptions } from './multipart.js';
+export {
+  type FileWithFieldsOptions,
+  readFileWithFields,
+  readSingleFile,
+  type SingleFileOptions,
+} from './multipart.js';
 export { IS_PUBLIC, Public } from './public.decorator.js';
 export {
   RateLimit,

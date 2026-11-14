@@ -185,4 +185,22 @@ describe('FileStorage', () => {
     await storage.remove(stored.key);
     expect(filesUnder(root)).toEqual([]);
   });
+
+  it('NFR-08 opens a stored file for download with its stored type and nosniff', async () => {
+    const stored = await upload(SVG, logos);
+    const download = await storage.openDownload(stored.key);
+    download.stream.destroy();
+    expect(download.headers).toMatchObject({
+      'Content-Type': 'image/svg+xml',
+      'X-Content-Type-Options': 'nosniff',
+    });
+    expect(download.headers['Content-Security-Policy']).toContain("default-src 'none'");
+  });
+
+  it('answers 404 NOT_FOUND for a download whose file is missing on disk', async () => {
+    await expect(storage.openDownload('media/missing.png')).rejects.toMatchObject({
+      code: 'NOT_FOUND',
+      status: 404,
+    });
+  });
 });
