@@ -21,6 +21,7 @@ function toMedia(row: MediaRow): Media {
   return {
     id: row.id,
     projectId: row.projectId,
+    unitId: row.unitId,
     type: row.type,
     title: row.title,
     displayOrder: row.displayOrder,

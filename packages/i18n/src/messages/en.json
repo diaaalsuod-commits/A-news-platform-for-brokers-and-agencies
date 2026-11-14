@@ -54,7 +54,9 @@
     "PROJECT_ALREADY_PUBLISHED": "This project is already published.",
     "PROJECT_NOT_PUBLISHED": "This project is not published.",
     "PROJECT_ARCHIVED": "This project is archived and can no longer be changed.",
-    "DEFAULT_PLAN_REQUIRED": "This plan is the project's default. Make another plan the default before deleting it."
+    "DEFAULT_PLAN_REQUIRED": "This plan is the project's default. Make another plan the default before deleting it.",
+    "UNIT_NUMBER_TAKEN": "Another unit of this project already has this unit number.",
+    "UNIT_IN_USE": "This unit cannot be deleted: its project has been published or its price and status history exists. Change its status instead."
   },
   "email": {
     "invitation": {

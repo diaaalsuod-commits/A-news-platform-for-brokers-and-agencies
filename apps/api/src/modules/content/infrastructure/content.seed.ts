@@ -9,6 +9,7 @@ import {
   type SeedRandom,
 } from '../../../shared/database/seed-helpers.js';
 import type { FileStorage } from '../../../shared/files/index.js';
+import { parseFloor } from '../domain/floor.js';
 import {
   areas,
   developers,
@@ -298,13 +299,19 @@ function buildPlan(scope: string, projectId: string, templateIndex: number, isDe
   };
 }
 
+/** The label and its sort key come from the one floor rule the API uses (FR-DAT-08, FR-UNT-03). */
+function floorOf(label: string) {
+  const floor = parseFloor(label);
+  if (!floor) throw new Error(`Seed floor label ${label} is not accepted`);
+  return { floorLabel: floor.label, floorSortKey: floor.sortKey };
+}
+
 function buildFloor(random: SeedRandom) {
   const roll = random.next();
-  if (roll < 0.03) return { floorLabel: 'B', floorSortKey: -1 };
-  if (roll < 0.08) return { floorLabel: 'G', floorSortKey: 0 };
-  if (roll < 0.11) return { floorLabel: 'M', floorSortKey: 1 };
-  const floor = random.int(1, 40);
-  return { floorLabel: String(floor), floorSortKey: floor + 1 };
+  if (roll < 0.03) return floorOf('B');
+  if (roll < 0.08) return floorOf('G');
+  if (roll < 0.11) return floorOf('M');
+  return floorOf(String(random.int(1, 40)));
 }
 
 function buildStatus(random: SeedRandom) {

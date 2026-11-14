@@ -117,5 +117,30 @@ export function contentFixtures(h: App) {
     return id;
   }
 
-  return { developer, emirate, community, project, amenity, media };
+  /**
+   * An item of one of admin's unit reference lists (FR-ADM-04), active unless told otherwise. A
+   * layout gets one bedroom.
+   */
+  async function reference(
+    table: 'property_types' | 'layouts' | 'unit_levels' | 'furnishing_types' | 'unit_tags',
+    isActive = true,
+  ): Promise<string> {
+    const id = randomUUID();
+    const code = `fx_${tag()}`;
+    if (table === 'layouts') {
+      await h.db.query(
+        `INSERT INTO layouts (id, code, bedrooms, name_ar, name_en, is_active)
+         VALUES ($1, $2, 1, $3, $4, $5)`,
+        [id, code, `تصميم ${code}`, `Fixture layout ${code}`, isActive],
+      );
+    } else {
+      await h.db.query(
+        `INSERT INTO ${table} (id, code, name_ar, name_en, is_active) VALUES ($1, $2, $3, $4, $5)`,
+        [id, code, `عنصر ${code}`, `Fixture ${code}`, isActive],
+      );
+    }
+    return id;
+  }
+
+  return { developer, emirate, community, project, amenity, media, reference };
 }

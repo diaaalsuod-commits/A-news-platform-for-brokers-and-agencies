@@ -8,6 +8,7 @@ import { mediaFiles, projects } from './content.schema.js';
 export interface MediaRow {
   id: string;
   projectId: string;
+  unitId: string | null;
   type: MediaType;
   title: string;
   filePath: string;
@@ -30,6 +31,7 @@ export interface MediaValues {
 const columns = {
   id: mediaFiles.id,
   projectId: mediaFiles.projectId,
+  unitId: mediaFiles.unitId,
   type: mediaFiles.type,
   title: mediaFiles.title,
   filePath: mediaFiles.filePath,

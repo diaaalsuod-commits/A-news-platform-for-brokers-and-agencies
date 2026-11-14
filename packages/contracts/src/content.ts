@@ -431,6 +431,8 @@ export type UpdateMediaRequest = z.infer<typeof updateMediaRequestSchema>;
 export const mediaSchema = z.object({
   id: z.uuid(),
   projectId: z.uuid(),
+  /** FR-DAT-08: the unit whose floor plan this is, linked from the unit (PATCH …/units/:unitId). */
+  unitId: z.uuid().nullable(),
   type: mediaTypeSchema,
   title: z.string(),
   displayOrder: z.number().int(),

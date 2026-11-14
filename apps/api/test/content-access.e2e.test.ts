@@ -50,6 +50,12 @@ const ENDPOINTS: [Method, string][] = [
   ['put', `/content/projects/${ID}/payment-plans/${ID}`],
   ['post', `/content/projects/${ID}/payment-plans/${ID}/default`],
   ['delete', `/content/projects/${ID}/payment-plans/${ID}`],
+  // P4.3b (FR-DAT-08, FR-DAT-09)
+  ['get', `/content/projects/${ID}/units`],
+  ['post', `/content/projects/${ID}/units`],
+  ['get', `/content/projects/${ID}/units/${ID}`],
+  ['patch', `/content/projects/${ID}/units/${ID}`],
+  ['delete', `/content/projects/${ID}/units/${ID}`],
 ];
 
 const OTHER_ROLES: UserRole[] = ['platform_admin', 'agency_admin', 'broker'];
@@ -70,8 +76,8 @@ describe('Data Operator content endpoints: access (FR-ACC-04, NFR-09)', () => {
   const call = (method: Method, path: string, session?: string) =>
     method === 'get' ? h.get(path, session) : h.send(method, path, { session, body: {} });
 
-  it('covers all 37 endpoints', () => {
-    expect(ENDPOINTS).toHaveLength(37);
+  it('covers all 42 endpoints', () => {
+    expect(ENDPOINTS).toHaveLength(42);
   });
 
   describe.each(OTHER_ROLES)('FR-ACC-04 %s', (role) => {
