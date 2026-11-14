@@ -3,6 +3,8 @@ import { emailSchema, phoneSchema } from './account.js';
 import { httpsUrlSchema } from './agency.js';
 import {
   areaLevelSchema,
+  type MediaType,
+  mediaTypeSchema,
   ownershipTypeSchema,
   projectStageSchema,
   publishStatusSchema,
@@ -369,3 +371,82 @@ export const verifyProjectRequestSchema = z
   })
   .strict();
 export type VerifyProjectRequest = z.infer<typeof verifyProjectRequestSchema>;
+
+// ---------------------------------------------------------------- media (FR-DAT-06, BR-14)
+
+const MB = 1024 * 1024;
+
+/**
+ * FR-DAT-06: the largest file for each media type. Images are JPEG, PNG or WebP; floor plans,
+ * brochures and master plans are PDF; videos are MP4. The real type is judged by the file's bytes.
+ */
+export const MEDIA_MAX_BYTES = {
+  image: 10 * MB,
+  floor_plan: 25 * MB,
+  brochure: 25 * MB,
+  master_plan: 25 * MB,
+  video: 200 * MB,
+} as const satisfies Record<MediaType, number>;
+
+/** The multipart form field that carries the file; the text fields must come before it. */
+export const mediaFileField = 'file';
+export const MEDIA_NOTE_MAX = 1000;
+export const MEDIA_DISPLAY_ORDER_MAX = 9999;
+
+const mediaNoteSchema = z.string().trim().min(1).max(MEDIA_NOTE_MAX);
+const mediaTitleSchema = z.string().trim().min(1).max(200);
+
+/**
+ * FR-DAT-06, BR-14: the text fields of an upload, sent before the file part as multipart fields
+ * (strings). The source and the license note are mandatory.
+ */
+export const mediaUploadFieldsSchema = z
+  .object({
+    type: mediaTypeSchema,
+    title: mediaTitleSchema,
+    displayOrder: z
+      .string()
+      .regex(/^\d{1,4}$/)
+      .transform(Number)
+      .optional(),
+    sourceNote: mediaNoteSchema,
+    licenseNote: mediaNoteSchema,
+  })
+  .strict();
+export type MediaUploadFields = z.infer<typeof mediaUploadFieldsSchema>;
+
+/** Only the fields sent change. The type is fixed: it decided which files were accepted. */
+export const updateMediaRequestSchema = z
+  .object({
+    title: mediaTitleSchema,
+    displayOrder: z.number().int().min(0).max(MEDIA_DISPLAY_ORDER_MAX),
+    sourceNote: mediaNoteSchema,
+    licenseNote: mediaNoteSchema,
+  })
+  .partial()
+  .strict();
+export type UpdateMediaRequest = z.infer<typeof updateMediaRequestSchema>;
+
+/** A media file as the Data Operator manages it. */
+export const mediaSchema = z.object({
+  id: z.uuid(),
+  projectId: z.uuid(),
+  type: mediaTypeSchema,
+  title: z.string(),
+  displayOrder: z.number().int(),
+  mimeType: z.string(),
+  sizeBytes: z.number().int(),
+  sourceNote: z.string(),
+  licenseNote: z.string(),
+  /** Behind the session, for Data Operators. */
+  fileUrl: z.string(),
+  createdAt: isoDateTime,
+  updatedAt: isoDateTime,
+});
+export type Media = z.infer<typeof mediaSchema>;
+
+export const mediaListResponseSchema = listResponseSchema(mediaSchema);
+export type MediaListResponse = z.infer<typeof mediaListResponseSchema>;
+
+export const mediaListQuerySchema = pageQuerySchema.extend({ type: mediaTypeSchema.optional() });
+export type MediaListQuery = z.infer<typeof mediaListQuerySchema>;

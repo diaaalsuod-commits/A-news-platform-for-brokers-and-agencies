@@ -1,6 +1,11 @@
 export { ContentModule } from './content.module.js';
 export { isStale } from './domain/project.js';
 export {
+  type PublishedMedia,
+  type PublishedProject,
+  ProjectReadModel,
+} from './application/project-read-model.js';
+export {
   type ContactDetails,
   SalesContactReader,
   type SellerContact,

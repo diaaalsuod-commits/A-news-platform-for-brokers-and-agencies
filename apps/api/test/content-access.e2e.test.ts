@@ -7,7 +7,10 @@ type Method = 'get' | 'post' | 'put' | 'patch' | 'delete';
 
 const ID = randomUUID();
 
-/** Every Data Operator endpoint: P4.1 (FR-DAT-01 to FR-DAT-03) and P4.2 (FR-DAT-04, FR-DAT-05, FR-DAT-10). */
+/**
+ * Every Data Operator endpoint: P4.1 (FR-DAT-01 to FR-DAT-03) and P4.2 (FR-DAT-04 to FR-DAT-06,
+ * FR-DAT-10).
+ */
 const ENDPOINTS: [Method, string][] = [
   ['get', '/content/developers'],
   ['post', '/content/developers'],
@@ -35,6 +38,11 @@ const ENDPOINTS: [Method, string][] = [
   ['post', `/content/projects/${ID}/publish`],
   ['post', `/content/projects/${ID}/unpublish`],
   ['post', `/content/projects/${ID}/archive`],
+  ['get', `/content/projects/${ID}/media`],
+  ['post', `/content/projects/${ID}/media`],
+  ['patch', `/content/projects/${ID}/media/${ID}`],
+  ['delete', `/content/projects/${ID}/media/${ID}`],
+  ['get', `/content/projects/${ID}/media/${ID}/file`],
 ];
 
 const OTHER_ROLES: UserRole[] = ['platform_admin', 'agency_admin', 'broker'];
@@ -55,8 +63,8 @@ describe('Data Operator content endpoints: access (FR-ACC-04, NFR-09)', () => {
   const call = (method: Method, path: string, session?: string) =>
     method === 'get' ? h.get(path, session) : h.send(method, path, { session, body: {} });
 
-  it('covers all 26 endpoints', () => {
-    expect(ENDPOINTS).toHaveLength(26);
+  it('covers all 31 endpoints', () => {
+    expect(ENDPOINTS).toHaveLength(31);
   });
 
   describe.each(OTHER_ROLES)('FR-ACC-04 %s', (role) => {
