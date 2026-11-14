@@ -5,11 +5,13 @@ import { AdminModule } from '../admin/index.js';
 import { AreasController } from './api/areas.controller.js';
 import { DevelopersController } from './api/developers.controller.js';
 import { MediaController } from './api/media.controller.js';
+import { PaymentPlansController } from './api/payment-plans.controller.js';
 import { ProjectsController } from './api/projects.controller.js';
 import { SalesContactsController } from './api/sales-contacts.controller.js';
 import { AreaService } from './application/area.service.js';
 import { DeveloperService } from './application/developer.service.js';
 import { MediaService } from './application/media.service.js';
+import { PaymentPlanService } from './application/payment-plan.service.js';
 import { ProjectPublishingService } from './application/project-publishing.service.js';
 import { ProjectService } from './application/project.service.js';
 import { ProjectReadModel } from './application/project-read-model.js';
@@ -19,6 +21,7 @@ import { SalesContactService } from './application/sales-contact.service.js';
 import { AreaRepository } from './infrastructure/area.repository.js';
 import { DeveloperRepository } from './infrastructure/developer.repository.js';
 import { MediaRepository } from './infrastructure/media.repository.js';
+import { PaymentPlanRepository } from './infrastructure/payment-plan.repository.js';
 import { ProjectReadRepository } from './infrastructure/project-read.repository.js';
 import { ProjectRepository } from './infrastructure/project.repository.js';
 import { SalesContactRepository } from './infrastructure/sales-contact.repository.js';
@@ -33,6 +36,7 @@ import { SalesContactRepository } from './infrastructure/sales-contact.repositor
     AreasController,
     ProjectsController,
     MediaController,
+    PaymentPlansController,
   ],
   providers: [
     DeveloperRepository,
@@ -50,6 +54,8 @@ import { SalesContactRepository } from './infrastructure/sales-contact.repositor
     MediaService,
     ProjectReadRepository,
     ProjectReadModel,
+    PaymentPlanRepository,
+    PaymentPlanService,
   ],
   exports: [SalesContactReader, ProjectReadModel],
 })

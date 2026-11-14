@@ -248,6 +248,15 @@ export class ProjectRepository {
     return row ?? null;
   }
 
+  /** True when the project exists, whatever its status: plans and units of any project can be read. */
+  async exists(id: string): Promise<boolean> {
+    const [row] = await this.db
+      .select({ id: projects.id })
+      .from(projects)
+      .where(eq(projects.id, id));
+    return row !== undefined;
+  }
+
   async amenityIds(
     projectId: string,
     tx: NodePgDatabase | DatabaseTransaction = this.db,
@@ -298,6 +307,25 @@ export class ProjectRepository {
           ? { quarter: handoverQuarter, year: handoverYear }
           : null,
     };
+  }
+
+  /**
+   * The project's status and first publish time, with the row locked FOR UPDATE (payment plans,
+   * so their writes on one project run one at a time) or FOR SHARE (units, so an archive or a
+   * publish waits for the write). The project row comes first in the lock order (docs/decisions.md,
+   * P4.3). Null when there is no such project.
+   */
+  async lockState(
+    tx: DatabaseTransaction,
+    id: string,
+    strength: 'update' | 'share',
+  ): Promise<{ status: PublishStatus; publishedAt: Date | null } | null> {
+    const [row] = await tx
+      .select({ status: projects.status, publishedAt: projects.publishedAt })
+      .from(projects)
+      .where(eq(projects.id, id))
+      .for(strength);
+    return row ?? null;
   }
 
   /**

@@ -53,7 +53,8 @@
     "DEVELOPER_HAS_PUBLISHED_PROJECTS": "لهذا المطوّر مشاريع منشورة. ألغِ نشرها قبل أرشفة المطوّر.",
     "PROJECT_ALREADY_PUBLISHED": "هذا المشروع منشور بالفعل.",
     "PROJECT_NOT_PUBLISHED": "هذا المشروع غير منشور.",
-    "PROJECT_ARCHIVED": "هذا المشروع مؤرشف ولم يعد من الممكن تعديله."
+    "PROJECT_ARCHIVED": "هذا المشروع مؤرشف ولم يعد من الممكن تعديله.",
+    "DEFAULT_PLAN_REQUIRED": "هذه الخطة هي الخطة الافتراضية للمشروع. اجعل خطة أخرى افتراضية قبل حذفها."
   },
   "email": {
     "invitation": {

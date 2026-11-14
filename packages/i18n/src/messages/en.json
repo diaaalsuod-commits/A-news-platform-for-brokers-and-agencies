@@ -53,7 +53,8 @@
     "DEVELOPER_HAS_PUBLISHED_PROJECTS": "This developer has published projects. Unpublish them before archiving the developer.",
     "PROJECT_ALREADY_PUBLISHED": "This project is already published.",
     "PROJECT_NOT_PUBLISHED": "This project is not published.",
-    "PROJECT_ARCHIVED": "This project is archived and can no longer be changed."
+    "PROJECT_ARCHIVED": "This project is archived and can no longer be changed.",
+    "DEFAULT_PLAN_REQUIRED": "This plan is the project's default. Make another plan the default before deleting it."
   },
   "email": {
     "invitation": {

@@ -4,6 +4,9 @@ import type { Issue } from '../domain/issues.js';
 
 export const notFound = () => new AppError('NOT_FOUND', HttpStatus.NOT_FOUND);
 
+/** FR-DAT-07: the default plan of a project that has other plans; another one is made the default first. */
+export const defaultPlanRequired = () => new AppError('DEFAULT_PLAN_REQUIRED', HttpStatus.CONFLICT);
+
 /** 400 VALIDATION_FAILED with the fields and rules, in the shape the validation pipe uses. */
 export const validationFailed = (...issues: Issue[]) =>
   new AppError('VALIDATION_FAILED', HttpStatus.BAD_REQUEST, { issues });

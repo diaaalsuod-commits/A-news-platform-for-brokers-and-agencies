@@ -8,8 +8,8 @@ type Method = 'get' | 'post' | 'put' | 'patch' | 'delete';
 const ID = randomUUID();
 
 /**
- * Every Data Operator endpoint: P4.1 (FR-DAT-01 to FR-DAT-03) and P4.2 (FR-DAT-04 to FR-DAT-06,
- * FR-DAT-10).
+ * Every Data Operator endpoint: P4.1 (FR-DAT-01 to FR-DAT-03), P4.2 (FR-DAT-04 to FR-DAT-06,
+ * FR-DAT-10) and P4.3 (FR-DAT-07 to FR-DAT-09).
  */
 const ENDPOINTS: [Method, string][] = [
   ['get', '/content/developers'],
@@ -43,6 +43,13 @@ const ENDPOINTS: [Method, string][] = [
   ['patch', `/content/projects/${ID}/media/${ID}`],
   ['delete', `/content/projects/${ID}/media/${ID}`],
   ['get', `/content/projects/${ID}/media/${ID}/file`],
+  // P4.3a (FR-DAT-07)
+  ['get', `/content/projects/${ID}/payment-plans`],
+  ['post', `/content/projects/${ID}/payment-plans`],
+  ['get', `/content/projects/${ID}/payment-plans/${ID}`],
+  ['put', `/content/projects/${ID}/payment-plans/${ID}`],
+  ['post', `/content/projects/${ID}/payment-plans/${ID}/default`],
+  ['delete', `/content/projects/${ID}/payment-plans/${ID}`],
 ];
 
 const OTHER_ROLES: UserRole[] = ['platform_admin', 'agency_admin', 'broker'];
@@ -63,8 +70,8 @@ describe('Data Operator content endpoints: access (FR-ACC-04, NFR-09)', () => {
   const call = (method: Method, path: string, session?: string) =>
     method === 'get' ? h.get(path, session) : h.send(method, path, { session, body: {} });
 
-  it('covers all 31 endpoints', () => {
-    expect(ENDPOINTS).toHaveLength(31);
+  it('covers all 37 endpoints', () => {
+    expect(ENDPOINTS).toHaveLength(37);
   });
 
   describe.each(OTHER_ROLES)('FR-ACC-04 %s', (role) => {
