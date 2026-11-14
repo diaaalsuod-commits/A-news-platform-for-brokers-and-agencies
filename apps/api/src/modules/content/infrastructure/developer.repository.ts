@@ -2,8 +2,12 @@ import { Inject, Injectable } from '@nestjs/common';
 import type { RecordStatus } from '@reih/contracts';
 import { and, asc, count, eq, ilike, or, type SQL } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { containsPattern, DATABASE } from '../../../shared/database/index.js';
-import { developers } from './content.schema.js';
+import {
+  containsPattern,
+  DATABASE,
+  type DatabaseTransaction,
+} from '../../../shared/database/index.js';
+import { developers, projects } from './content.schema.js';
 
 export interface DeveloperRow {
   id: string;
@@ -86,13 +90,45 @@ export class DeveloperRepository {
   }
 
   /** Returns false when no developer has this id. */
-  async update(id: string, values: DeveloperValues, now: Date): Promise<boolean> {
-    const updated = await this.db
+  async update(
+    id: string,
+    values: DeveloperValues,
+    now: Date,
+    tx: NodePgDatabase | DatabaseTransaction = this.db,
+  ): Promise<boolean> {
+    const updated = await tx
       .update(developers)
       .set({ ...values, updatedAt: now })
       .where(eq(developers.id, id))
       .returning({ id: developers.id });
     return updated.length > 0;
+  }
+
+  transaction<T>(work: (tx: DatabaseTransaction) => Promise<T>): Promise<T> {
+    return this.db.transaction(work);
+  }
+
+  /**
+   * Locks the developer row FOR UPDATE until the transaction ends; false when there is none. A
+   * publish holds the row FOR SHARE, so the archive waits for it, and a later publish waits for
+   * the archive (docs/decisions.md, P4.2 lock order).
+   */
+  async lock(tx: DatabaseTransaction, id: string): Promise<boolean> {
+    const rows = await tx
+      .select({ id: developers.id })
+      .from(developers)
+      .where(eq(developers.id, id))
+      .for('update');
+    return rows.length > 0;
+  }
+
+  /** How many of the developer's projects are published, read after the developer is locked. */
+  async publishedProjectCount(tx: DatabaseTransaction, id: string): Promise<number> {
+    const [row] = await tx
+      .select({ total: count() })
+      .from(projects)
+      .where(and(eq(projects.developerId, id), eq(projects.status, 'published')));
+    return row?.total ?? 0;
   }
 
   /**

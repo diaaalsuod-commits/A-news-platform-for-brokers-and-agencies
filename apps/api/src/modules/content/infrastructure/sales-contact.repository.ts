@@ -240,7 +240,8 @@ export class SalesContactRepository {
 
   /**
    * The projects among these ids, each with its developer. The shared lock keeps a project's
-   * developer from changing until the assignment is stored.
+   * developer from changing until the assignment is stored. Rows are locked in id order, as every
+   * transaction that locks several projects does (docs/decisions.md, P4.2 lock order).
    */
   async projectDevelopers(
     tx: DatabaseTransaction,
@@ -251,6 +252,7 @@ export class SalesContactRepository {
       .select({ id: projects.id, developerId: projects.developerId })
       .from(projects)
       .where(inArray(projects.id, [...projectIds]))
+      .orderBy(asc(projects.id))
       .for('share');
   }
 

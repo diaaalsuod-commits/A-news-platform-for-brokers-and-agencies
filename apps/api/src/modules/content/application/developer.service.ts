@@ -64,10 +64,26 @@ export class DeveloperService {
     return this.get(id);
   }
 
-  /** Only the fields sent change. status archives the developer or restores it. */
+  /**
+   * Only the fields sent change. status archives the developer or restores it. Archiving is
+   * refused while the developer has published projects (P4.2, open item 2a): the operator
+   * unpublishes them first, so no published project ever belongs to an archived developer
+   * (FR-DAT-01, FR-DAT-05). The developer row is locked before the projects are counted, so a
+   * publish under way finishes first and is counted, and one that starts later sees the archive.
+   */
   async update(id: string, changes: UpdateDeveloperRequest): Promise<Developer> {
-    const found = await this.developers.update(id, defined(changes), new Date());
-    if (!found) throw notFound();
+    if (changes.status !== 'archived') {
+      const found = await this.developers.update(id, defined(changes), new Date());
+      if (!found) throw notFound();
+      return this.get(id);
+    }
+    await this.developers.transaction(async (tx) => {
+      if (!(await this.developers.lock(tx, id))) throw notFound();
+      if ((await this.developers.publishedProjectCount(tx, id)) > 0) {
+        throw new AppError('DEVELOPER_HAS_PUBLISHED_PROJECTS', HttpStatus.CONFLICT);
+      }
+      await this.developers.update(id, defined(changes), new Date(), tx);
+    });
     return this.get(id);
   }
 

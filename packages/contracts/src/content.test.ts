@@ -3,11 +3,15 @@ import {
   contactLanguagesSchema,
   createAreaRequestSchema,
   createDeveloperRequestSchema,
+  createProjectRequestSchema,
   createSalesContactRequestSchema,
+  needsVerificationQuerySchema,
   salesContactListQuerySchema,
   updateAreaRequestSchema,
   updateDeveloperRequestSchema,
+  updateProjectRequestSchema,
   updateSalesContactRequestSchema,
+  verifyProjectRequestSchema,
 } from './content.js';
 
 const DEVELOPER_ID = '0b0f6f0e-3c58-4a8e-9d2b-0c7a6f3f1a11';
@@ -146,5 +150,72 @@ describe('area requests', () => {
   it('FR-DAT-03 the level cannot be sent in an update', () => {
     expect(updateAreaRequestSchema.safeParse({ level: 'community' }).success).toBe(false);
     expect(updateAreaRequestSchema.parse({ nameEn: 'Dubai' })).toEqual({ nameEn: 'Dubai' });
+  });
+});
+
+describe('project requests', () => {
+  const project = {
+    nameAr: 'أبراج الواحة',
+    nameEn: 'Oasis Towers',
+    developerId: DEVELOPER_ID,
+    communityId: DEVELOPER_ID,
+    location: { lng: 55.14, lat: 25.08 },
+    stage: 'under_construction',
+    ownershipType: 'freehold',
+  };
+
+  it('FR-DAT-04 a new project names its developer, community, location, stage and ownership', () => {
+    expect(createProjectRequestSchema.safeParse(project).success).toBe(true);
+    for (const key of Object.keys(project)) {
+      const without = { ...project, [key]: undefined };
+      expect(createProjectRequestSchema.safeParse(without).success, key).toBe(false);
+    }
+  });
+
+  it('FR-DAT-04 the status is never sent: a new project is a draft', () => {
+    expect(createProjectRequestSchema.safeParse({ ...project, status: 'draft' }).success).toBe(
+      false,
+    );
+    expect(updateProjectRequestSchema.safeParse({ status: 'published' }).success).toBe(false);
+  });
+
+  it('BR-05 the expected handover is a quarter and a year together', () => {
+    const handover = (expectedHandover: unknown) =>
+      createProjectRequestSchema.safeParse({ ...project, expectedHandover }).success;
+    expect(handover({ quarter: 4, year: 2029 })).toBe(true);
+    expect(handover(null)).toBe(true);
+    expect(handover({ quarter: 4 })).toBe(false);
+    expect(handover({ quarter: 0, year: 2029 })).toBe(false);
+    expect(handover({ quarter: 4, year: 2029, month: 11 })).toBe(false);
+  });
+
+  it('FR-DAT-04 the service charge is a decimal string with at most two decimals, never a number', () => {
+    const charge = (serviceChargeAedPerSqm: unknown) =>
+      createProjectRequestSchema.safeParse({ ...project, serviceChargeAedPerSqm }).success;
+    expect(charge('18.50')).toBe(true);
+    expect(charge('12345678.99')).toBe(true);
+    expect(charge(18.5)).toBe(false);
+    expect(charge('18.505')).toBe(false);
+    expect(charge('123456789')).toBe(false);
+    expect(charge('-1')).toBe(false);
+  });
+
+  it('FR-DAT-04 Q3 any valid WGS 84 point is accepted; the UAE is checked when publishing', () => {
+    const at = (location: unknown) =>
+      createProjectRequestSchema.safeParse({ ...project, location }).success;
+    expect(at({ lng: 58.4, lat: 23.6 })).toBe(true);
+    expect(at({ lng: 180.1, lat: 0 })).toBe(false);
+    expect(at({ lng: 0, lat: 90.1 })).toBe(false);
+  });
+
+  it('FR-DAT-10 a verification needs a date and a source; needs-verification never lists archived', () => {
+    expect(
+      verifyProjectRequestSchema.safeParse({ date: '2026-11-01', source: 'Call' }).success,
+    ).toBe(true);
+    expect(verifyProjectRequestSchema.safeParse({ date: '2026-11-01', source: ' ' }).success).toBe(
+      false,
+    );
+    expect(verifyProjectRequestSchema.safeParse({ source: 'Call' }).success).toBe(false);
+    expect(needsVerificationQuerySchema.safeParse({ status: 'archived' }).success).toBe(false);
   });
 });

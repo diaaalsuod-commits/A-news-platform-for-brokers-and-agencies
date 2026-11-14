@@ -77,6 +77,8 @@ export class SalesContactService {
     );
 
     const id = await this.contacts.transaction(async (tx) => {
+      // Lock order (docs/decisions.md, P4.2): the projects, then the developer.
+      const found = await this.contacts.projectDevelopers(tx, projectIds);
       if (!(await this.contacts.developerExists(tx, input.developerId))) {
         throw validationFailed({ path: 'developerId', code: 'not_found' });
       }
@@ -84,7 +86,7 @@ export class SalesContactService {
         assignmentIssue({
           developerId: input.developerId,
           wanted: projectIds,
-          found: await this.contacts.projectDevelopers(tx, projectIds),
+          found,
           projectIdsSent: true,
         }),
       );
@@ -126,21 +128,19 @@ export class SalesContactService {
 
       const developerId = changes.developerId ?? current.developerId;
       const developerChanged = developerId !== current.developerId;
+      const projectIdsSent = changes.projectIds !== undefined;
+
+      // Lock order (docs/decisions.md, P4.2): the contact, its projects, then the developer.
+      let check: { wanted: string[]; found: { id: string; developerId: string }[] } | null = null;
+      if (projectIdsSent || developerChanged) {
+        const wanted = changes.projectIds ?? (await this.contacts.assignedProjectIds(tx, id));
+        check = { wanted, found: await this.contacts.projectDevelopers(tx, wanted) };
+      }
       if (developerChanged && !(await this.contacts.developerExists(tx, developerId))) {
         throw validationFailed({ path: 'developerId', code: 'not_found' });
       }
-
-      const projectIdsSent = changes.projectIds !== undefined;
-      if (projectIdsSent || developerChanged) {
-        const wanted = changes.projectIds ?? (await this.contacts.assignedProjectIds(tx, id));
-        assertNoIssue(
-          assignmentIssue({
-            developerId,
-            wanted,
-            found: await this.contacts.projectDevelopers(tx, wanted),
-            projectIdsSent,
-          }),
-        );
+      if (check) {
+        assertNoIssue(assignmentIssue({ developerId, ...check, projectIdsSent }));
       }
 
       await this.contacts.update(tx, id, columnsOf(changes), new Date());

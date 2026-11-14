@@ -48,7 +48,12 @@
     "RATE_DATE_IN_FUTURE": "The rate date cannot be later than today (UAE time).",
     "LAST_AGENCY_ADMIN": "The agency must keep at least one active Agency Admin. This change would leave none.",
     "DEVELOPER_IN_USE": "This developer is used by projects or sales contacts and cannot be deleted. Archive it instead.",
-    "AREA_IN_USE": "This area is in use and cannot be deleted. Deactivate it instead."
+    "AREA_IN_USE": "This area is in use and cannot be deleted. Deactivate it instead.",
+    "PUBLISH_BLOCKED": "This project cannot be published yet. Complete the missing items first.",
+    "DEVELOPER_HAS_PUBLISHED_PROJECTS": "This developer has published projects. Unpublish them before archiving the developer.",
+    "PROJECT_ALREADY_PUBLISHED": "This project is already published.",
+    "PROJECT_NOT_PUBLISHED": "This project is not published.",
+    "PROJECT_ARCHIVED": "This project is archived and can no longer be changed."
   },
   "email": {
     "invitation": {

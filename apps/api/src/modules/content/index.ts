@@ -1,4 +1,5 @@
 export { ContentModule } from './content.module.js';
+export { isStale } from './domain/project.js';
 export {
   type ContactDetails,
   SalesContactReader,

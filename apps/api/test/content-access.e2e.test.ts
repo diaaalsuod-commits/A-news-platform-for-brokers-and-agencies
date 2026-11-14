@@ -7,7 +7,7 @@ type Method = 'get' | 'post' | 'put' | 'patch' | 'delete';
 
 const ID = randomUUID();
 
-/** Every Data Operator endpoint of P4.1 (FR-DAT-01 to FR-DAT-03). */
+/** Every Data Operator endpoint: P4.1 (FR-DAT-01 to FR-DAT-03) and P4.2 (FR-DAT-04, FR-DAT-05, FR-DAT-10). */
 const ENDPOINTS: [Method, string][] = [
   ['get', '/content/developers'],
   ['post', '/content/developers'],
@@ -26,6 +26,15 @@ const ENDPOINTS: [Method, string][] = [
   ['get', `/content/areas/${ID}`],
   ['patch', `/content/areas/${ID}`],
   ['delete', `/content/areas/${ID}`],
+  ['get', '/content/projects'],
+  ['post', '/content/projects'],
+  ['get', '/content/projects/needs-verification'],
+  ['get', `/content/projects/${ID}`],
+  ['patch', `/content/projects/${ID}`],
+  ['post', `/content/projects/${ID}/verify`],
+  ['post', `/content/projects/${ID}/publish`],
+  ['post', `/content/projects/${ID}/unpublish`],
+  ['post', `/content/projects/${ID}/archive`],
 ];
 
 const OTHER_ROLES: UserRole[] = ['platform_admin', 'agency_admin', 'broker'];
@@ -46,8 +55,8 @@ describe('Data Operator content endpoints: access (FR-ACC-04, NFR-09)', () => {
   const call = (method: Method, path: string, session?: string) =>
     method === 'get' ? h.get(path, session) : h.send(method, path, { session, body: {} });
 
-  it('covers all 17 endpoints', () => {
-    expect(ENDPOINTS).toHaveLength(17);
+  it('covers all 26 endpoints', () => {
+    expect(ENDPOINTS).toHaveLength(26);
   });
 
   describe.each(OTHER_ROLES)('FR-ACC-04 %s', (role) => {
@@ -70,6 +79,11 @@ describe('Data Operator content endpoints: access (FR-ACC-04, NFR-09)', () => {
       expect([401, 403]).not.toContain(response.status);
     },
   );
+
+  it('FR-DAT-04 there is no endpoint that deletes a project: it is archived', async () => {
+    const response = await call('delete', `/content/projects/${ID}`, sessions.data_operator);
+    expect(response.status).toBe(404);
+  });
 
   it('FR-DAT-02 there is no endpoint that deletes a sales contact', async () => {
     const response = await call('delete', `/content/sales-contacts/${ID}`, sessions.data_operator);

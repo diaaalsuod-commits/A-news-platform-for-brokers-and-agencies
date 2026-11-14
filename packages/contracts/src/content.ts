@@ -1,7 +1,13 @@
 import { z } from 'zod';
 import { emailSchema, phoneSchema } from './account.js';
 import { httpsUrlSchema } from './agency.js';
-import { areaLevelSchema, recordStatusSchema } from './enums.js';
+import {
+  areaLevelSchema,
+  ownershipTypeSchema,
+  projectStageSchema,
+  publishStatusSchema,
+  recordStatusSchema,
+} from './enums.js';
 import { listResponseSchema, pageQuerySchema } from './lists.js';
 
 // Content management (SRS 4.11), part 1: developers, sales contacts and areas. Every endpoint is
@@ -222,3 +228,144 @@ export const updateAreaRequestSchema = z
   .partial()
   .strict();
 export type UpdateAreaRequest = z.infer<typeof updateAreaRequestSchema>;
+
+// ---------------------------------------------------------------- projects (FR-DAT-04, FR-DAT-05, FR-DAT-10)
+
+/** Any valid WGS 84 point. Whether it lies inside the UAE is checked when publishing (FR-DAT-05). */
+export const wgs84PointSchema = z
+  .object({ lng: z.number().min(-180).max(180), lat: z.number().min(-90).max(90) })
+  .strict();
+
+/** BR-05: the expected handover, a quarter and a year, kept apart from the actual handover date. */
+export const expectedHandoverSchema = z
+  .object({
+    quarter: z.number().int().min(1).max(4),
+    year: z.number().int().min(2000).max(2100),
+  })
+  .strict();
+export type ExpectedHandover = z.infer<typeof expectedHandoverSchema>;
+
+/** A leasehold term in whole years. */
+export const LEASE_TERM_MAX_YEARS = 99;
+/** AED per m², numeric(10,2): up to 8 digits, then up to 2 decimals, as a string, never a float. */
+export const serviceChargeSchema = z
+  .string()
+  .trim()
+  .regex(/^\d{1,8}(\.\d{1,2})?$/);
+export const PROJECT_AMENITIES_MAX = 100;
+const amenityIdsSchema = z
+  .array(z.uuid())
+  .max(PROJECT_AMENITIES_MAX)
+  .refine((ids) => new Set(ids).size === ids.length, { message: 'duplicate amenity' });
+
+/**
+ * FR-DAT-05: everything a project may lack for publishing, by a stable code, in this order. The
+ * Operations Dashboard names each one in the user's language.
+ */
+export const publishBlockerValues = [
+  'developer_missing',
+  'developer_archived',
+  'community_missing',
+  'location_missing',
+  'location_outside_uae',
+  'stage_missing',
+  'expected_handover_missing',
+  'licensed_image_missing',
+  'verification_missing',
+] as const;
+export const publishBlockerSchema = z.enum(publishBlockerValues);
+export type PublishBlocker = z.infer<typeof publishBlockerSchema>;
+
+const projectRefFields = {
+  id: z.uuid(),
+  nameAr: z.string(),
+  nameEn: z.string(),
+  developer: namedRefSchema.extend({ status: recordStatusSchema }),
+  community: namedRefSchema.extend({ isActive: z.boolean() }),
+  stage: projectStageSchema,
+  status: publishStatusSchema,
+  /** The UAE calendar day of the latest verification (FR-DAT-10, BR-07). */
+  lastVerifiedAt: z.iso.date().nullable(),
+  lastVerificationSource: z.string().nullable(),
+  updatedAt: isoDateTime,
+};
+
+/** A project in a list (FR-DAT-04) and in the needs-verification list (FR-DAT-10). */
+export const projectSummarySchema = z.object(projectRefFields);
+export type ProjectSummary = z.infer<typeof projectSummarySchema>;
+
+/** FR-DAT-04: a project as the Data Operator manages it. */
+export const projectSchema = z.object({
+  ...projectRefFields,
+  descriptionAr: z.string().nullable(),
+  descriptionEn: z.string().nullable(),
+  location: geoPointSchema,
+  /** Optional, shown for upcoming projects (FR-PRJ-09); never a publishing blocker. */
+  expectedLaunchDate: z.iso.date().nullable(),
+  expectedHandover: expectedHandoverSchema.nullable(),
+  actualHandoverDate: z.iso.date().nullable(),
+  ownershipType: ownershipTypeSchema,
+  leaseTermYears: z.number().int().nullable(),
+  serviceChargeAedPerSqm: z.string().nullable(),
+  amenityIds: z.array(z.uuid()),
+  publishedAt: isoDateTime.nullable(),
+  createdAt: isoDateTime,
+});
+export type Project = z.infer<typeof projectSchema>;
+
+export const projectListResponseSchema = listResponseSchema(projectSummarySchema);
+export type ProjectListResponse = z.infer<typeof projectListResponseSchema>;
+
+/** q matches either name. */
+export const projectListQuerySchema = pageQuerySchema.extend({
+  q: optionalSearch,
+  status: publishStatusSchema.optional(),
+  stage: projectStageSchema.optional(),
+  developerId: z.uuid().optional(),
+  communityId: z.uuid().optional(),
+});
+export type ProjectListQuery = z.infer<typeof projectListQuerySchema>;
+
+/** FR-DAT-10: archived projects never appear, so only draft and published can be asked for. */
+export const needsVerificationQuerySchema = pageQuerySchema.extend({
+  status: z.enum(['draft', 'published']).optional(),
+});
+export type NeedsVerificationQuery = z.infer<typeof needsVerificationQuerySchema>;
+
+const projectFields = {
+  nameAr: nameSchema,
+  nameEn: nameSchema,
+  descriptionAr: clearable(descriptionSchema),
+  descriptionEn: clearable(descriptionSchema),
+  developerId: z.uuid(),
+  communityId: z.uuid(),
+  location: wgs84PointSchema,
+  stage: projectStageSchema,
+  expectedLaunchDate: clearable(z.iso.date()),
+  expectedHandover: clearable(expectedHandoverSchema),
+  actualHandoverDate: clearable(z.iso.date()),
+  ownershipType: ownershipTypeSchema,
+  /** Required for leasehold, refused for freehold. */
+  leaseTermYears: clearable(z.number().int().min(1).max(LEASE_TERM_MAX_YEARS)),
+  serviceChargeAedPerSqm: clearable(serviceChargeSchema),
+  /** The whole set of amenities; a new one must be active (FR-ADM-04). */
+  amenityIds: amenityIdsSchema.optional(),
+};
+
+/** FR-DAT-04: a new project is always a draft; there is no status field. */
+export const createProjectRequestSchema = z.object(projectFields).strict();
+export type CreateProjectRequest = z.infer<typeof createProjectRequestSchema>;
+
+/** Only the fields sent change. Status changes through publish, unpublish and archive only. */
+export const updateProjectRequestSchema = z.object(projectFields).partial().strict();
+export type UpdateProjectRequest = z.infer<typeof updateProjectRequestSchema>;
+
+/** FR-DAT-10: the date is a UAE calendar day, today or earlier; the source is required. */
+export const verifyProjectRequestSchema = z
+  .object({
+    date: z.iso.date(),
+    source: z.string().trim().min(1).max(500),
+    notes: clearable(z.string().trim().max(2000)),
+  })
+  .strict();
+export type VerifyProjectRequest = z.infer<typeof verifyProjectRequestSchema>;

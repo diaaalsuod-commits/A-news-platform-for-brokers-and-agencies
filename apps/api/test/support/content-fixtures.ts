@@ -4,8 +4,8 @@ import type { useIdentityApp } from './identity-app.js';
 type App = ReturnType<typeof useIdentityApp>;
 
 /**
- * Rows the content tests need before their own endpoint exists (projects come in P4.2), written
- * straight to the test database.
+ * Rows the content tests need, written straight to the test database: those whose endpoint does
+ * not exist yet, and those a test needs in a state the API would refuse to create.
  */
 export function contentFixtures(h: App) {
   const tag = () => randomUUID().slice(0, 8);
@@ -65,5 +65,57 @@ export function contentFixtures(h: App) {
     return id;
   }
 
-  return { developer, emirate, community, project };
+  /** An active amenity in a new active category (admin's reference data, FR-ADM-04). */
+  async function amenity(): Promise<string> {
+    const categoryId = randomUUID();
+    const id = randomUUID();
+    await h.db.query('INSERT INTO amenity_categories (id, name_ar, name_en) VALUES ($1, $2, $3)', [
+      categoryId,
+      `فئة ${tag()}`,
+      `Fixture Category ${tag()}`,
+    ]);
+    await h.db.query(
+      'INSERT INTO amenities (id, category_id, name_ar, name_en) VALUES ($1, $2, $3, $4)',
+      [id, categoryId, `مرفق ${tag()}`, `Fixture Amenity ${tag()}`],
+    );
+    return id;
+  }
+
+  /**
+   * A media row with no file on disk, licensed unless told otherwise: what publishing counts
+   * (FR-DAT-05, BR-14) before the media endpoints exist, and rows the API would refuse.
+   */
+  async function media(
+    projectId: string,
+    uploadedBy: string,
+    options: {
+      type?: 'image' | 'floor_plan' | 'brochure' | 'master_plan' | 'video';
+      sourceNote?: string;
+      licenseNote?: string;
+      displayOrder?: number;
+    } = {},
+  ): Promise<string> {
+    const id = randomUUID();
+    const type = options.type ?? 'image';
+    await h.db.query(
+      `INSERT INTO media_files (id, project_id, type, title, file_path, mime_type, size_bytes,
+         display_order, source_note, license_note, uploaded_by)
+       VALUES ($1, $2, $3, $4, $5, $6, 100, $7, $8, $9, $10)`,
+      [
+        id,
+        projectId,
+        type,
+        `Fixture ${type} ${tag()}`,
+        `project-media/${id}.${type === 'image' ? 'png' : type === 'video' ? 'mp4' : 'pdf'}`,
+        type === 'image' ? 'image/png' : type === 'video' ? 'video/mp4' : 'application/pdf',
+        options.displayOrder ?? 0,
+        options.sourceNote ?? 'Own photography',
+        options.licenseNote ?? 'Owned by the REIH team',
+        uploadedBy,
+      ],
+    );
+    return id;
+  }
+
+  return { developer, emirate, community, project, amenity, media };
 }

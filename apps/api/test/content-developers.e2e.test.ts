@@ -166,7 +166,13 @@ describe('Developers (FR-DAT-01)', () => {
   it('FR-DAT-01 a developer with a project cannot be deleted: 409, and it is still there', async () => {
     const id = await createId();
     const communityId = await fixtures.community(await fixtures.emirate());
-    await fixtures.project({ developerId: id, communityId, createdBy: operator.id });
+    // A draft: since P4.2 a developer with published projects cannot be archived (409).
+    await fixtures.project({
+      developerId: id,
+      communityId,
+      createdBy: operator.id,
+      status: 'draft',
+    });
 
     const response = await h.send('delete', `/content/developers/${id}`, { session });
     expect(response.status).toBe(409);
