@@ -5,12 +5,10 @@ import { type ReactNode, useMemo, useState } from 'react';
 import { LoadState } from './shell';
 import {
   nextSort,
-  pageCount,
-  pageRows,
   type SortState,
   type SortValue,
-  sortRows,
   TABLE_PAGE_SIZE,
+  tableView,
 } from './table-model';
 import { Ltr } from './text';
 
@@ -36,12 +34,24 @@ export interface DataTableProps<T> {
   empty: ReactNode;
   initialSort?: SortState;
   pageSize?: number;
+  /**
+   * Server paging, for lists too long to load whole (5,000 projects): rows is the page the API
+   * sent, in its order, and the pager asks for another page. Headers do not sort, because the API
+   * has no sort parameter. Without it, the whole list is loaded and sorted and paged here.
+   */
+  server?: ServerPaging;
+}
+
+export interface ServerPaging {
+  page: number;
+  total: number;
+  onPage: (page: number) => void;
 }
 
 /**
  * The one table of every list screen (SRS 3.1, NFR-12, NFR-14): sortable columns, paging, and the
- * loading, empty and error-with-retry states. Sorting and paging run on the loaded list; search and
- * status filters go to the API.
+ * loading, empty and error-with-retry states. By default sorting and paging run on the loaded list,
+ * and search and status filters go to the API; with server, the API pages too (tableView).
  */
 export function DataTable<T>({
   caption,
@@ -54,26 +64,33 @@ export function DataTable<T>({
   empty,
   initialSort,
   pageSize = TABLE_PAGE_SIZE,
+  server,
 }: DataTableProps<T>) {
   const t = useTranslations('table');
   const locale = useLocale();
   const [sort, setSort] = useState<SortState | null>(initialSort ?? null);
-  const [page, setPage] = useState(1);
+  const [clientPage, setClientPage] = useState(1);
 
-  const sorted = useMemo(() => {
+  const view = useMemo(() => {
     const list = rows ?? [];
+    if (server) {
+      return tableView(list, { mode: 'server', page: server.page, pageSize, total: server.total });
+    }
     const column = sort ? columns.find((candidate) => candidate.key === sort.key) : undefined;
-    return column?.sortValue
-      ? sortRows(list, column.sortValue, sort!.direction, locale)
-      : [...list];
-  }, [rows, columns, sort, locale]);
-  const pages = pageCount(sorted.length, pageSize);
-  const current = Math.min(page, pages);
-  const visible = pageRows(sorted, current, pageSize);
+    return tableView(
+      list,
+      { mode: 'client', page: clientPage, pageSize },
+      column?.sortValue && sort
+        ? { value: column.sortValue, direction: sort.direction, locale }
+        : undefined,
+    );
+  }, [rows, columns, sort, locale, server, clientPage, pageSize]);
+  const { visible, pages, page: current, sortable } = view;
+  const setPage = (page: number) => (server ? server.onPage(page) : setClientPage(page));
 
   return (
     <LoadState pending={pending && rows === undefined} error={error} onRetry={onRetry}>
-      {sorted.length === 0 ? (
+      {visible.length === 0 ? (
         <p role="status" className="reih-empty">
           {empty}
         </p>
@@ -84,30 +101,34 @@ export function DataTable<T>({
             <thead>
               <tr>
                 {columns.map((column) => {
-                  const active = sort?.key === column.key;
+                  const active = sortable && sort?.key === column.key;
                   const ariaSort = active
-                    ? sort.direction === 'asc'
+                    ? sort?.direction === 'asc'
                       ? 'ascending'
                       : 'descending'
                     : undefined;
                   return (
                     <th key={column.key} scope="col" aria-sort={ariaSort}>
-                      {column.sortValue ? (
+                      {sortable && column.sortValue ? (
                         <button
                           type="button"
                           className="reih-sort"
                           onClick={() => {
                             setSort(nextSort(sort, column.key));
-                            setPage(1);
+                            setClientPage(1);
                           }}
                         >
                           {column.header}
                           <span aria-hidden="true">
-                            {active ? (sort.direction === 'asc' ? ' ▲' : ' ▼') : ' ↕'}
+                            {active ? (sort?.direction === 'asc' ? ' ▲' : ' ▼') : ' ↕'}
                           </span>
                           <span className="reih-visually-hidden">
                             {active
-                              ? t(sort.direction === 'asc' ? 'sortedAscending' : 'sortedDescending')
+                              ? t(
+                                  sort?.direction === 'asc'
+                                    ? 'sortedAscending'
+                                    : 'sortedDescending',
+                                )
                               : t('sortable')}
                           </span>
                         </button>

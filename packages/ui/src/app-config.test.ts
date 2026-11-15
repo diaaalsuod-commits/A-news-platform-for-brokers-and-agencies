@@ -13,6 +13,7 @@ describe('navigation by role (FR-ACC-04)', () => {
   it('FR-ACC-04 Data Operators see their content screens and no admin screens', () => {
     expect(labels('ops', 'data_operator')).toEqual([
       'home',
+      'projects',
       'developers',
       'salesContacts',
       'areas',

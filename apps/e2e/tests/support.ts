@@ -131,3 +131,64 @@ export async function createDataOperator(
   const operator = await activateAndLogIn(browser, email);
   return { operator, admin, email };
 }
+
+/**
+ * A state-changing API call with this page's session and a CSRF token, for a step whose button
+ * comes in a later part (archiving a project arrives with the publish screens, P4.4 part d) or
+ * for Platform Admin set-up the test does not exercise.
+ */
+export async function apiCall(
+  page: Page,
+  method: 'post' | 'patch',
+  path: string,
+  data?: object,
+): Promise<{ status: number; body: Record<string, unknown> }> {
+  const origin = new URL(page.url()).origin;
+  const csrf = await page.request.get(`${origin}/api/v1/auth/csrf`);
+  expect(csrf.status(), 'a CSRF token').toBe(200);
+  const { token } = (await csrf.json()) as { token: string };
+  const response = await page.request[method](`${origin}/api/v1${path}`, {
+    headers: { 'x-csrf-token': token },
+    data: data ?? {},
+  });
+  return { status: response.status(), body: (await response.json()) as Record<string, unknown> };
+}
+
+/** The map style the screens use (packages/ui/src/map/tiles.ts). */
+export const MAP_STYLE_URL = 'https://tiles.openfreemap.org/styles/liberty';
+const MAP_STYLE_PATTERN = /^https:\/\/tiles\.openfreemap\.org\/styles\/liberty/;
+
+/**
+ * Serves a minimal style instead of OpenFreeMap's, so a map works with no network: a background
+ * layer and no tiles. A click still gives a point, so the map-picker tests do not depend on
+ * tiles.openfreemap.org.
+ */
+export async function useLocalMapStyle(page: Page) {
+  await page.unroute(MAP_STYLE_PATTERN);
+  await page.route(MAP_STYLE_PATTERN, (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      headers: { 'access-control-allow-origin': '*' },
+      body: JSON.stringify({
+        version: 8,
+        name: 'e2e-local',
+        sources: {},
+        layers: [
+          { id: 'background', type: 'background', paint: { 'background-color': '#e6eef0' } },
+        ],
+      }),
+    }),
+  );
+}
+
+/** Makes the map style unreachable, as a network failure would. */
+export async function failMapStyle(page: Page) {
+  await page.unroute(MAP_STYLE_PATTERN);
+  await page.route(MAP_STYLE_PATTERN, (route) => route.abort('internetdisconnected'));
+}
+
+/** Back to the real style on the real network. */
+export async function useRealMapStyle(page: Page) {
+  await page.unroute(MAP_STYLE_PATTERN);
+}

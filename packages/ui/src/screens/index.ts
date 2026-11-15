@@ -11,4 +11,5 @@ export { StaffScreen } from './admin/staff';
 export { AgencySettingsScreen } from './agency-settings';
 export { AreasScreen } from './content/areas';
 export { DeveloperDetailScreen, DevelopersScreen } from './content/developers';
+export { NewProjectScreen, ProjectEditorScreen, ProjectsScreen } from './content/projects';
 export { SalesContactsScreen } from './content/sales-contacts';

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { nextSort, pageCount, pageRows, sortRows } from './table-model';
+import { nextSort, pageCount, pageRows, sortRows, tableView } from './table-model';
 
 describe('table model', () => {
   const rows = [
@@ -67,5 +67,44 @@ describe('table model', () => {
       key: 'email',
       direction: 'asc',
     });
+  });
+});
+
+describe('tableView: the two paging modes of the DataTable (SRS 3.1)', () => {
+  const rows = Array.from({ length: 45 }, (_, index) => ({ n: 45 - index }));
+
+  it('client mode sorts the whole list in the browser, then shows one page of it', () => {
+    const view = tableView(
+      rows,
+      { mode: 'client', page: 2, pageSize: 20 },
+      { value: (row) => row.n, direction: 'asc', locale: 'en' },
+    );
+    expect(view.pages).toBe(3);
+    expect(view.page).toBe(2);
+    expect(view.sortable).toBe(true);
+    expect(view.visible.map((row) => row.n)).toEqual(
+      Array.from({ length: 20 }, (_, index) => 21 + index),
+    );
+  });
+
+  it('client mode keeps a page past the end on the last page', () => {
+    const view = tableView(rows, { mode: 'client', page: 9, pageSize: 20 });
+    expect(view.page).toBe(3);
+    expect(view.visible).toHaveLength(5);
+  });
+
+  it('server mode shows the rows as the API sent them, counts pages from total, never sorts', () => {
+    const onePage = rows.slice(0, 20);
+    const view = tableView(onePage, { mode: 'server', page: 3, pageSize: 20, total: 5000 });
+    expect(view.pages).toBe(250);
+    expect(view.page).toBe(3);
+    expect(view.sortable).toBe(false);
+    // Neither sorted nor sliced: page 3 of the server is not row 41 onwards of these rows.
+    expect(view.visible).toEqual(onePage);
+  });
+
+  it('server mode with no rows has one page', () => {
+    const view = tableView([], { mode: 'server', page: 1, pageSize: 20, total: 0 });
+    expect(view).toEqual({ visible: [], page: 1, pages: 1, sortable: false });
   });
 });

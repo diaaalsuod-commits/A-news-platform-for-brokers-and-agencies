@@ -34,7 +34,8 @@ const NAV_ITEMS: Record<AppKind, readonly NavItem[]> = {
   ],
   ops: [
     { href: '/', label: 'home', roles: ['data_operator', 'platform_admin'] },
-    // FR-DAT-01 to FR-DAT-03: Data Operator content screens (P4.4); projects follow in part b.
+    // FR-DAT-01 to FR-DAT-04: Data Operator content screens (P4.4); Needs verification follows in part d.
+    { href: '/projects', label: 'projects', roles: ['data_operator'] },
     { href: '/developers', label: 'developers', roles: ['data_operator'] },
     { href: '/sales-contacts', label: 'salesContacts', roles: ['data_operator'] },
     { href: '/areas', label: 'areas', roles: ['data_operator'] },

@@ -158,7 +158,8 @@
     "currenciesSettings": "Currencies and settings",
     "developers": "Developers",
     "salesContacts": "Sales contacts",
-    "areas": "Areas"
+    "areas": "Areas",
+    "projects": "Projects"
   },
   "roles": {
     "broker": "Broker",
@@ -712,9 +713,95 @@
       "chooseEmirate": "Choose an emirate",
       "inactiveMark": "(deactivated)",
       "center": "Center point",
-      "centerHint": "WGS 84 degrees inside the UAE: longitude <ltr>51.4</ltr> to <ltr>56.6</ltr> east, latitude <ltr>22.4</ltr> to <ltr>26.5</ltr> north.",
+      "centerHint": "Click the map, or type WGS 84 degrees inside the UAE: longitude <ltr>51.4</ltr> to <ltr>56.6</ltr> east, latitude <ltr>22.4</ltr> to <ltr>26.5</ltr> north.",
       "lng": "Longitude (east)",
-      "lat": "Latitude (north)"
+      "lat": "Latitude (north)",
+      "centerMap": "Map of the center point"
+    },
+    "projects": {
+      "title": "Projects",
+      "search": "Search by name",
+      "new": "New project",
+      "newTitle": "New project",
+      "createHint": "A new project is always a draft: brokers do not see it until it is published from its page.",
+      "create": "Create project",
+      "saved": "Changes saved.",
+      "empty": "There are no projects yet.",
+      "noMatch": "No project matches these filters.",
+      "back": "← All projects",
+      "allDevelopers": "All developers",
+      "allCommunities": "All communities",
+      "neverVerified": "Never verified",
+      "columns": {
+        "name": "Project",
+        "developer": "Developer",
+        "community": "Community",
+        "stage": "Stage",
+        "lastVerified": "Last verified"
+      },
+      "stage": {
+        "upcoming": "Upcoming",
+        "under_construction": "Under construction",
+        "ready": "Ready"
+      },
+      "status": {
+        "draft": "Draft",
+        "published": "Published",
+        "archived": "Archived"
+      },
+      "tabsLabel": "Project sections",
+      "tabs": {
+        "details": "Details",
+        "amenities": "Amenities"
+      },
+      "chooseDeveloper": "Choose a developer",
+      "chooseCommunity": "Choose a community",
+      "chooseStage": "Choose a stage",
+      "archivedMark": "(archived)",
+      "inactiveMark": "(deactivated)",
+      "expectedLaunchDate": "Expected launch date",
+      "expectedLaunchHint": "Optional; shown for upcoming projects.",
+      "expectedHandover": "Expected handover",
+      "expectedHandoverHint": "A quarter and a year, or neither. Needed to publish unless the project is ready.",
+      "quarter": "Quarter",
+      "noQuarter": "Not set",
+      "quarterOption": "Q{quarter}",
+      "year": "Year",
+      "actualHandoverDate": "Actual handover date",
+      "serviceCharge": "Service charge (AED per m²)",
+      "serviceChargeHint": "Optional. Up to two decimals, for example <ltr>15.50</ltr>.",
+      "ownershipType": "Ownership",
+      "ownership": {
+        "freehold": "Freehold",
+        "leasehold": "Leasehold"
+      },
+      "leaseTermYears": "Lease term (years)",
+      "leaseTermHint": "Required for leasehold, from <ltr>1</ltr> to <ltr>99</ltr> years.",
+      "location": "Location",
+      "locationHint": "Click the map, or type WGS 84 degrees. Publishing needs a point inside the UAE: longitude <ltr>51.4</ltr> to <ltr>56.6</ltr> east, latitude <ltr>22.4</ltr> to <ltr>26.5</ltr> north.",
+      "lng": "Longitude (east)",
+      "lat": "Latitude (north)",
+      "locationMap": "Map of the project location",
+      "archivedNotice": "This project is archived and read-only. Restore it to edit it again; it comes back as a draft.",
+      "restore": "Restore",
+      "restoreTitle": "Restore this project?",
+      "restoreBody": "<strong>{name}</strong> becomes a draft again. Brokers do not see it until it is published.",
+      "amenities": {
+        "hint": "Tick the amenities this project offers.",
+        "empty": "No amenities are set up yet.",
+        "otherGroup": "Other",
+        "deactivated": "(deactivated)",
+        "deactivatedHint": "A deactivated amenity stays on the project until you untick it; it cannot be chosen again.",
+        "save": "Save amenities",
+        "saved": "Amenities saved."
+      }
     }
+  },
+  "map": {
+    "loading": "Loading the map…",
+    "error": "The map could not be loaded. You can still type the longitude and the latitude.",
+    "retry": "Try the map again",
+    "clickHint": "Click the map to set the point; the fields above follow.",
+    "readOnly": "Read-only: this point cannot be changed here."
   }
 }

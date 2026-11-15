@@ -69,3 +69,47 @@ export function nextSort(current: SortState | null, key: string): SortState {
     ? { key, direction: 'desc' }
     : { key, direction: 'asc' };
 }
+
+/**
+ * How the DataTable pages (SRS 3.1, NFR-12). client: the whole list is loaded, then sorted and
+ * paged in the browser. server: the rows are one page the API sent, in the API's order, and total
+ * counts every row; the browser neither sorts nor slices them.
+ */
+export type TablePaging =
+  | { mode: 'client'; page: number; pageSize: number }
+  | { mode: 'server'; page: number; pageSize: number; total: number };
+
+export interface TableOrder<T> {
+  value: (row: T) => SortValue;
+  direction: SortDirection;
+  locale: string;
+}
+
+/** The rows to show, the current page (1-based) and the number of pages. */
+export interface TableView<T> {
+  visible: T[];
+  page: number;
+  pages: number;
+  /** Whether column headers sort: only when the whole list is in the browser. */
+  sortable: boolean;
+}
+
+export function tableView<T>(
+  rows: readonly T[],
+  paging: TablePaging,
+  order?: TableOrder<T>,
+): TableView<T> {
+  if (paging.mode === 'server') {
+    const pages = pageCount(paging.total, paging.pageSize);
+    return {
+      visible: [...rows],
+      page: Math.min(Math.max(1, paging.page), pages),
+      pages,
+      sortable: false,
+    };
+  }
+  const sorted = order ? sortRows(rows, order.value, order.direction, order.locale) : [...rows];
+  const pages = pageCount(sorted.length, paging.pageSize);
+  const page = Math.min(Math.max(1, paging.page), pages);
+  return { visible: pageRows(sorted, page, paging.pageSize), page, pages, sortable: true };
+}

@@ -1,8 +1,9 @@
 'use client';
 
 import { MAX_PAGE_SIZE } from '@reih/contracts';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback } from 'react';
+import { TABLE_PAGE_SIZE } from '../table-model';
 import { useApi } from './hooks';
 
 interface ListPage<T> {
@@ -44,6 +45,27 @@ export function useFullList<T>(
         if (result.items.length === 0 || items.length >= result.total) return items;
       }
     },
+  });
+}
+
+/**
+ * One page of an API list, for a DataTable with server paging (lists too long to load whole, such
+ * as projects). The page shown stays while the next one loads.
+ */
+export function usePagedList<T>(
+  path: string,
+  params: Record<string, string | undefined>,
+  page: number,
+  pageSize: number = TABLE_PAGE_SIZE,
+) {
+  const api = useApi();
+  return useQuery({
+    queryKey: ['list', path, params, page, pageSize],
+    queryFn: () =>
+      api.get<ListPage<T>>(
+        withQuery(path, { ...params, page: String(page), pageSize: String(pageSize) }),
+      ),
+    placeholderData: keepPreviousData,
   });
 }
 

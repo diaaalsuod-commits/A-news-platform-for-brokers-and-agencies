@@ -24,6 +24,7 @@
     "@hookform/resolvers": "catalog:",
     "@reih/contracts": "workspace:*",
     "@reih/i18n": "workspace:*",
+    "maplibre-gl": "catalog:",
     "react-hook-form": "catalog:",
     "zod": "catalog:"
   },

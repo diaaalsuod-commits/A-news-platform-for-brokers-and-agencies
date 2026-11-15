@@ -8,7 +8,7 @@ import {
   updateAreaRequestSchema,
 } from '@reih/contracts';
 import { useLocale, useTranslations } from 'next-intl';
-import { type FormEvent, useId, useState } from 'react';
+import { type FormEvent, useState } from 'react';
 import { useApi, useErrorText } from '../../api/hooks';
 import { useFullList, useRefreshLists } from '../../api/lists';
 import { type Column, DataTable } from '../../data-table';
@@ -27,7 +27,8 @@ import { localName } from '../../names';
 import { AuthGate } from '../../shell';
 import { Tabs } from '../../tabs';
 import { Ltr, richTags } from '../../text';
-import { ActiveBadge, asOptionalNumber, DATA_OPERATOR } from './parts';
+import { LocationFields } from './location-fields';
+import { ActiveBadge, DATA_OPERATOR } from './parts';
 
 const PATH = '/content/areas';
 const LEVELS: readonly AreaLevel[] = ['emirate', 'community'];
@@ -259,9 +260,9 @@ function AreaTab({ level }: { level: AreaLevel }) {
 }
 
 /**
- * FR-DAT-03: names and descriptions in both languages and a center point. Longitude and latitude
- * are typed (the keyboard way to set a point; the map picker joins in P4.4 part b); the API refuses
- * a point outside the UAE.
+ * FR-DAT-03: names and descriptions in both languages and a center point, typed as longitude and
+ * latitude (the keyboard way) or picked on the map (P4.4 part b); the API refuses a point outside
+ * the UAE.
  */
 function AreaForm({
   level,
@@ -283,7 +284,6 @@ function AreaForm({
   const api = useApi();
   const refresh = useRefreshLists();
   const fieldError = useFieldErrorText();
-  const centerId = useId();
   const schema = area ? updateAreaRequestSchema : createSchema;
   const form = useApiForm(schema, {
     defaultValues: {
@@ -311,13 +311,9 @@ function AreaForm({
     name: string,
     options?: { setValueAs?: (value: unknown) => unknown },
   ) => ReturnType<typeof form.form.register>;
-  const errors = form.form.formState.errors as Record<
-    string,
-    { message?: string; lng?: { message?: string }; lat?: { message?: string } } | undefined
-  >;
+  const errors = form.form.formState.errors as Record<string, { message?: string } | undefined>;
   // An inactive emirate is offered only when it is the community's own.
   const choices = emirates.filter((emirate) => emirate.isActive || emirate.id === area?.parentId);
-  const centerError = errors.center?.message;
 
   return (
     <ApiForm
@@ -379,41 +375,15 @@ function AreaForm({
           {...register('descriptionEn')}
         />
       </FieldPair>
-      <fieldset
-        className="reih-field"
-        data-invalid={centerError ? 'true' : undefined}
-        aria-describedby={`${centerId}-hint${centerError ? ` ${centerId}-error` : ''}`}
-      >
-        <legend>{t('center')}</legend>
-        <p id={`${centerId}-hint`} className="reih-hint">
-          {t.rich('centerHint', richTags)}
-        </p>
-        <FieldPair>
-          <TextField
-            label={t('lng')}
-            type="number"
-            step="any"
-            inputMode="decimal"
-            dir="ltr"
-            error={fieldError(errors.center?.lng?.message)}
-            {...register('center.lng', { setValueAs: asOptionalNumber })}
-          />
-          <TextField
-            label={t('lat')}
-            type="number"
-            step="any"
-            inputMode="decimal"
-            dir="ltr"
-            error={fieldError(errors.center?.lat?.message)}
-            {...register('center.lat', { setValueAs: asOptionalNumber })}
-          />
-        </FieldPair>
-        {centerError && (
-          <p id={`${centerId}-error`} className="reih-field-error">
-            {fieldError(centerError)}
-          </p>
-        )}
-      </fieldset>
+      <LocationFields
+        form={form.form}
+        name="center"
+        legend={t('center')}
+        hint={t.rich('centerHint', richTags)}
+        lngLabel={t('lng')}
+        latLabel={t('lat')}
+        mapLabel={t('centerMap')}
+      />
       <CheckboxField label={tCommon('activeField')} {...register('isActive')} />
     </ApiForm>
   );

@@ -1,6 +1,6 @@
 'use client';
 
-import type { RecordStatus } from '@reih/contracts';
+import type { PublishStatus, RecordStatus } from '@reih/contracts';
 import { useTranslations } from 'next-intl';
 
 /** Every content screen is for the Data Operator only (FR-ACC-04); the API decides as well. */
@@ -29,3 +29,14 @@ export function ActiveBadge({ active }: { active: boolean }) {
 /** An empty number field is "not set"; anything else is a number for the schema to check. */
 export const asOptionalNumber = (value: unknown) =>
   value === '' || value === null || value === undefined ? undefined : Number(value);
+
+/** A project's status: draft, published or archived (FR-DAT-04, UC-05.5). */
+export function PublishStatusBadge({ status }: { status: PublishStatus }) {
+  const t = useTranslations('content.projects.status');
+  const tone = status === 'published' ? 'success' : status === 'archived' ? 'warning' : undefined;
+  return (
+    <span className="reih-badge" data-tone={tone}>
+      {t(status)}
+    </span>
+  );
+}
