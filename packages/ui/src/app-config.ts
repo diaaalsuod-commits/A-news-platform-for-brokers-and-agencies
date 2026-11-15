@@ -34,7 +34,11 @@ const NAV_ITEMS: Record<AppKind, readonly NavItem[]> = {
   ],
   ops: [
     { href: '/', label: 'home', roles: ['data_operator', 'platform_admin'] },
-    // FR-ADM-01 to FR-ADM-06: Platform Admin screens. Data Operators get theirs with FR-DAT.
+    // FR-DAT-01 to FR-DAT-03: Data Operator content screens (P4.4); projects follow in part b.
+    { href: '/developers', label: 'developers', roles: ['data_operator'] },
+    { href: '/sales-contacts', label: 'salesContacts', roles: ['data_operator'] },
+    { href: '/areas', label: 'areas', roles: ['data_operator'] },
+    // FR-ADM-01 to FR-ADM-06: Platform Admin screens.
     { href: '/agencies', label: 'agencies', roles: ['platform_admin'] },
     { href: '/staff', label: 'staff', roles: ['platform_admin'] },
     { href: '/reference-data', label: 'referenceData', roles: ['platform_admin'] },

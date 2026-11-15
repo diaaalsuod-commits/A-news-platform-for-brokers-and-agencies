@@ -1,9 +1,52 @@
 import { execSync } from 'node:child_process';
 import { resolve } from 'node:path';
-import { expect } from '@playwright/test';
+import { type Browser, expect, type Page } from '@playwright/test';
+import { messages } from '@reih/i18n';
 
 export const MAILPIT_API = `${process.env.MAILPIT_URL ?? 'http://localhost:8025'}/api/v1`;
 const REPO_ROOT = resolve(import.meta.dirname, '../../..');
+const en = messages.en;
+
+/** The password every account activated by the e2e tests gets. */
+export const PASSWORD = 'e2e-password-long-1';
+export const OPS = 'https://ops.localhost';
+
+export async function logIn(page: Page, app: string, email: string, password = PASSWORD) {
+  await page.goto(`${app}/en/login`);
+  await page.getByLabel(en.auth.login.email).fill(email);
+  await page.getByLabel(en.auth.login.password, { exact: true }).fill(password);
+  await page.getByRole('button', { name: en.auth.login.submit }).click();
+  await expect(page).toHaveURL(`${app}/en`);
+}
+
+/** Opens the emailed link in a fresh browser, sets the password and logs in. */
+export async function activateAndLogIn(browser: Browser, email: string): Promise<Page> {
+  const link = await activationLinkFor(email);
+  const page = await (await browser.newContext({ ignoreHTTPSErrors: true })).newPage();
+  await page.goto(link);
+  await page.getByLabel(en.auth.activate.password, { exact: true }).fill(PASSWORD);
+  await page.getByLabel(en.auth.activate.confirmPassword).fill(PASSWORD);
+  await page.getByRole('checkbox').check();
+  await page.getByRole('button', { name: en.auth.activate.submit }).click();
+  await expect(page).toHaveURL(/\/en\/login\?done=activated$/);
+  await logIn(page, new URL(link).origin, email);
+  return page;
+}
+
+/** Collects every message next-intl could not find, from the browser console. */
+export function watchMissingMessages(page: Page): string[] {
+  const missing: string[] = [];
+  page.on('console', (message) => {
+    if (/MISSING_MESSAGE|INSUFFICIENT_PATH/.test(message.text())) missing.push(message.text());
+  });
+  return missing;
+}
+
+/** Switches with the header button, which also saves the choice (FR-ACC-06). */
+export async function switchToArabic(page: Page) {
+  await page.getByRole('button', { name: en.common.languageName.ar }).click();
+  await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
+}
 
 /**
  * A fresh invited Agency Admin, through the e2e:invite command (InvitationService in a Nest
@@ -64,4 +107,27 @@ export function createPlatformAdmin(): { email: string; password: string } {
     email: string;
     password: string;
   };
+}
+
+/**
+ * A fresh, active Data Operator through the real invitation flow (FR-ADM-03): a new Platform
+ * Admin invites them on the Staff screen, and they activate from the Mailpit email and log in to
+ * the Operations Dashboard. Returns the Data Operator's page and the Platform Admin's.
+ */
+export async function createDataOperator(
+  browser: Browser,
+): Promise<{ operator: Page; admin: Page; email: string }> {
+  const email = `e2e-operator-${Date.now()}@reih.test`;
+  const credentials = createPlatformAdmin();
+  const admin = await (await browser.newContext({ ignoreHTTPSErrors: true })).newPage();
+  await logIn(admin, OPS, credentials.email, credentials.password);
+  await admin.goto(`${OPS}/en/staff`);
+  await admin.getByLabel(en.invitations.columns.email, { exact: true }).fill(email);
+  await admin
+    .getByLabel(en.invitations.columns.role, { exact: true })
+    .selectOption('data_operator');
+  await admin.getByRole('button', { name: en.admin.staff.invite.submit }).click();
+  await expect(admin.getByRole('status').filter({ hasText: email })).toBeVisible();
+  const operator = await activateAndLogIn(browser, email);
+  return { operator, admin, email };
 }

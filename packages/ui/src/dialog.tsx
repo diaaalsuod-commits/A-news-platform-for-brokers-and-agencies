@@ -28,11 +28,14 @@ export function Dialog({
   onClose,
   title,
   children,
+  wide = false,
 }: {
   open: boolean;
   onClose: () => void;
   title: ReactNode;
   children: ReactNode;
+  /** Forms with Arabic and English fields side by side need the room. */
+  wide?: boolean;
 }) {
   const t = useTranslations('dialog');
   const ref = useRef<HTMLDialogElement>(null);
@@ -67,6 +70,7 @@ export function Dialog({
     <dialog
       ref={ref}
       className="reih-dialog"
+      data-wide={wide ? 'true' : undefined}
       aria-labelledby={titleId}
       onCancel={(event) => {
         // Esc: React state decides, so the dialog and the state never disagree.

@@ -1,33 +1,17 @@
-import { type Browser, expect, type Page, test } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { messages } from '@reih/i18n';
-import { activationLinkFor, createPlatformAdmin, inviteAgencyAdmin } from './support';
+import {
+  activateAndLogIn,
+  createPlatformAdmin,
+  inviteAgencyAdmin,
+  logIn,
+  OPS,
+  switchToArabic,
+  watchMissingMessages,
+} from './support';
 
 const en = messages.en;
-const PASSWORD = 'e2e-password-long-1';
 const BROKER = 'https://app.localhost';
-const OPS = 'https://ops.localhost';
-
-async function logIn(page: Page, app: string, email: string, password = PASSWORD) {
-  await page.goto(`${app}/en/login`);
-  await page.getByLabel(en.auth.login.email).fill(email);
-  await page.getByLabel(en.auth.login.password, { exact: true }).fill(password);
-  await page.getByRole('button', { name: en.auth.login.submit }).click();
-  await expect(page).toHaveURL(`${app}/en`);
-}
-
-/** Opens the emailed link in a fresh browser, sets the password and logs in. */
-async function activateAndLogIn(browser: Browser, email: string): Promise<Page> {
-  const link = await activationLinkFor(email);
-  const page = await (await browser.newContext({ ignoreHTTPSErrors: true })).newPage();
-  await page.goto(link);
-  await page.getByLabel(en.auth.activate.password, { exact: true }).fill(PASSWORD);
-  await page.getByLabel(en.auth.activate.confirmPassword).fill(PASSWORD);
-  await page.getByRole('checkbox').check();
-  await page.getByRole('button', { name: en.auth.activate.submit }).click();
-  await expect(page).toHaveURL(/\/en\/login\?done=activated$/);
-  await logIn(page, new URL(link).origin, email);
-  return page;
-}
 
 test.describe.serial('platform admin and agency admin screens', () => {
   test('FR-ADM-01 FR-ADM-02 FR-AGY-02 FR-AGY-03 FR-AGY-04 an agency from creation to its first broker', async ({
@@ -155,21 +139,6 @@ test.describe.serial('platform admin and agency admin screens', () => {
 
     await Promise.all([agencyAdmin.context().close(), broker.context().close()]);
   });
-
-  /** Collects every message next-intl could not find, from the browser console. */
-  function watchMissingMessages(page: Page): string[] {
-    const missing: string[] = [];
-    page.on('console', (message) => {
-      if (/MISSING_MESSAGE|INSUFFICIENT_PATH/.test(message.text())) missing.push(message.text());
-    });
-    return missing;
-  }
-
-  /** Switches with the header button, which also saves the choice (FR-ACC-06). */
-  async function switchToArabic(page: Page) {
-    await page.getByRole('button', { name: en.common.languageName.ar }).click();
-    await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
-  }
 
   test('NFR-06 NFR-12 every Platform Admin screen opens in English and Arabic with all its text', async ({
     page,

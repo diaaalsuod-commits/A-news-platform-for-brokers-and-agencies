@@ -24,9 +24,15 @@ export function withQuery(path: string, params: Record<string, string | undefine
  * Every item of an API list, read in pages of 100 (the API's maximum), for the DataTable to sort
  * and page. The admin lists are small; filters such as q and status still go to the API.
  */
-export function useFullList<T>(path: string, params: Record<string, string | undefined> = {}) {
+export function useFullList<T>(
+  path: string,
+  params: Record<string, string | undefined> = {},
+  /** enabled: false waits, for a list that depends on a choice not made yet. */
+  options: { enabled?: boolean } = {},
+) {
   const api = useApi();
   return useQuery({
+    enabled: options.enabled ?? true,
     queryKey: ['list', path, params],
     queryFn: async () => {
       const items: T[] = [];

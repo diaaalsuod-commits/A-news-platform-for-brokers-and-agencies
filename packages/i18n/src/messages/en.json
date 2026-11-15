@@ -118,7 +118,30 @@
     "passwordsDontMatch": "The two passwords do not match.",
     "termsRequired": "Accept the terms of use and the privacy policy to continue.",
     "summary": "Please correct the fields marked below.",
-    "dateInFuture": "Choose today or an earlier date (UAE time)."
+    "dateInFuture": "Choose today or an earlier date (UAE time).",
+    "server": {
+      "not_found": "This item no longer exists. Reload the page and choose again.",
+      "not_allowed": "This field must be left empty here.",
+      "in_future": "Choose today or an earlier date (UAE time).",
+      "outside_uae": "This point is outside the UAE. Check the longitude and the latitude.",
+      "not_emirate": "Choose an emirate.",
+      "not_community": "Choose a community, not an emirate.",
+      "other_developer": "Choose only projects of this contact's developer.",
+      "assigned_to_other_developer": "This contact is assigned to projects of its current developer. Clear those projects first, or choose projects of the new developer.",
+      "inactive": "This item is deactivated. Choose an active one.",
+      "archived": "This item is archived. Choose an active one.",
+      "has_assigned_contacts": "Sales contacts are assigned to this project. Remove them before changing the developer.",
+      "inactive_or_unknown": "One of the chosen items is deactivated or no longer exists.",
+      "exceeds_total": "This area may not be larger than the total area.",
+      "cannot_clear": "Once set, this value cannot be removed.",
+      "out_of_range": "This value is outside the allowed range.",
+      "unknown": "This value is not recognised.",
+      "empty": "Add at least one item.",
+      "total_not_100": "The percentages must add up to exactly 100%.",
+      "not_floor_plan": "Choose a floor plan file.",
+      "unlicensed": "This file has no recorded source and license.",
+      "linked_to_other_unit": "This floor plan already belongs to another unit."
+    }
   },
   "nav": {
     "skipToContent": "Skip to content",
@@ -131,7 +154,10 @@
     "agencies": "Agencies",
     "staff": "Staff",
     "referenceData": "Reference data",
-    "currenciesSettings": "Currencies and settings"
+    "currenciesSettings": "Currencies and settings",
+    "developers": "Developers",
+    "salesContacts": "Sales contacts",
+    "areas": "Areas"
   },
   "roles": {
     "broker": "Broker",
@@ -542,6 +568,152 @@
       "sent": "An invitation was sent to <ltr>{email}</ltr>.",
       "pending": "Open invitations",
       "empty": "There are no open invitations."
+    }
+  },
+  "content": {
+    "common": {
+      "nameAr": "Name in Arabic",
+      "nameEn": "Name in English",
+      "descriptionAr": "Description in Arabic",
+      "descriptionEn": "Description in English",
+      "descriptionHint": "Optional. When one language is missing, the other one is shown.",
+      "status": "Status",
+      "updated": "Updated",
+      "all": "All",
+      "active": "Active",
+      "inactive": "Inactive",
+      "archived": "Archived",
+      "apply": "Apply",
+      "actions": "Actions",
+      "edit": "Edit",
+      "activate": "Activate",
+      "deactivate": "Deactivate",
+      "delete": "Delete",
+      "save": "Save changes",
+      "activeField": "Active (offered in new selections)"
+    },
+    "developers": {
+      "title": "Developers",
+      "search": "Search by name",
+      "new": "New developer",
+      "empty": "There are no developers yet.",
+      "noMatch": "No developer matches these filters.",
+      "back": "← All developers",
+      "details": "Developer details",
+      "columns": {
+        "website": "Website"
+      },
+      "website": "Website",
+      "websiteHint": "Optional, https only, for example <ltr>https://example.ae</ltr>.",
+      "create": "Create developer",
+      "saved": "The developer was saved.",
+      "logoPreview": "Current logo",
+      "logoAlt": "Logo of {name}",
+      "noLogo": "This developer has no logo yet.",
+      "archiveHint": "An archived developer is not offered for new projects, and its projects cannot be published. A developer with published projects cannot be archived: unpublish them first.",
+      "restoreHint": "This developer is archived. Restore it to offer it for projects again.",
+      "archive": "Archive",
+      "restore": "Restore",
+      "archiveTitle": "Archive this developer?",
+      "restoreTitle": "Restore this developer?",
+      "archiveBody": "Archive <strong>{name}</strong>? Its projects cannot be published while it is archived.",
+      "restoreBody": "Restore <strong>{name}</strong>? It is offered for projects again.",
+      "deleteTitle": "Delete this developer?",
+      "deleteBody": "Delete <strong>{name}</strong> for good? A developer with projects or sales contacts cannot be deleted; archive it instead.",
+      "logo": {
+        "title": "Logo",
+        "file": "Logo file",
+        "hint": "PNG or SVG, at most <ltr>2 MB</ltr>.",
+        "svgNote": "SVG logos are cleaned for safety. Shapes drawn with <code>use</code> elements are removed, so such a logo can lose parts. PNG is safer.",
+        "choose": "Choose a file first.",
+        "wrongType": "Choose a PNG or SVG file.",
+        "tooLarge": "The file is larger than 2 MB.",
+        "upload": "Upload logo",
+        "uploading": "Uploading…",
+        "uploaded": "The logo was saved.",
+        "remove": "Remove logo",
+        "removeTitle": "Remove the logo?",
+        "removeBody": "The developer will have no logo until you upload one."
+      }
+    },
+    "contacts": {
+      "title": "Sales contacts",
+      "intro": "Phone numbers, WhatsApp and email are shown here to Data Operators only; brokers see them only after a reveal. An inactive contact never appears in the Seller tab.",
+      "search": "Search by name or job title",
+      "allDevelopers": "All developers",
+      "new": "New sales contact",
+      "editTitle": "Edit sales contact",
+      "empty": "There are no sales contacts yet.",
+      "noMatch": "No sales contact matches these filters.",
+      "create": "Create contact",
+      "phoneHint": "International format, for example <ltr>+971501234567</ltr>.",
+      "columns": {
+        "name": "Name",
+        "developer": "Developer",
+        "phone": "Phone",
+        "languages": "Languages",
+        "verified": "Verified on",
+        "projects": "Projects"
+      },
+      "form": {
+        "developer": "Developer",
+        "chooseDeveloper": "Choose a developer",
+        "archived": "(archived)",
+        "fullName": "Full name",
+        "title": "Job title",
+        "phone": "Phone",
+        "whatsapp": "WhatsApp",
+        "email": "Email",
+        "languages": "Languages",
+        "languagesHint": "Two-letter codes separated by commas, for example <ltr>ar, en, ru</ltr>.",
+        "verifiedAt": "Verified on",
+        "verificationHint": "The date and its source go together. The date is today or earlier (UAE time).",
+        "verificationSource": "Verification source",
+        "isActive": "Active (shown in the Seller tab of its published projects)",
+        "projects": "Assigned projects",
+        "projectsHint": "Only projects of the chosen developer can be assigned.",
+        "projectsChooseDeveloper": "Choose a developer to see its projects.",
+        "projectsNone": "This developer has no projects yet."
+      }
+    },
+    "areas": {
+      "title": "Areas",
+      "country": "Country: <strong>United Arab Emirates</strong>, the only market in this version.",
+      "tabs": {
+        "emirate": "Emirates",
+        "community": "Communities"
+      },
+      "columns": {
+        "emirate": "Emirate",
+        "center": "Center (longitude, latitude)"
+      },
+      "search": "Search by name",
+      "allEmirates": "All emirates",
+      "new": {
+        "emirate": "New emirate",
+        "community": "New community"
+      },
+      "editTitle": {
+        "emirate": "Edit emirate",
+        "community": "Edit community"
+      },
+      "create": {
+        "emirate": "Create emirate",
+        "community": "Create community"
+      },
+      "empty": {
+        "emirate": "There are no emirates yet.",
+        "community": "There are no communities yet."
+      },
+      "noMatch": "No area matches these filters.",
+      "deleteTitle": "Delete this area?",
+      "deleteBody": "Delete <strong>{name}</strong> for good? An emirate with communities or a community with projects cannot be deleted; deactivate it instead.",
+      "chooseEmirate": "Choose an emirate",
+      "inactiveMark": "(deactivated)",
+      "center": "Center point",
+      "centerHint": "WGS 84 degrees inside the UAE: longitude <ltr>51.4</ltr> to <ltr>56.6</ltr> east, latitude <ltr>22.4</ltr> to <ltr>26.5</ltr> north.",
+      "lng": "Longitude (east)",
+      "lat": "Latitude (north)"
     }
   }
 }

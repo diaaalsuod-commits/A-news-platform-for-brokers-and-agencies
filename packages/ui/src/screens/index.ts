@@ -9,3 +9,6 @@ export { CurrenciesSettingsScreen } from './admin/currencies-settings';
 export { ReferenceDataScreen } from './admin/reference-data';
 export { StaffScreen } from './admin/staff';
 export { AgencySettingsScreen } from './agency-settings';
+export { AreasScreen } from './content/areas';
+export { DeveloperDetailScreen, DevelopersScreen } from './content/developers';
+export { SalesContactsScreen } from './content/sales-contacts';

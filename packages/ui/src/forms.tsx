@@ -8,6 +8,7 @@ import {
   type InputHTMLAttributes,
   type ReactNode,
   type SelectHTMLAttributes,
+  type TextareaHTMLAttributes,
   useEffect,
   useId,
   useRef,
@@ -24,6 +25,7 @@ import {
 import type { z } from 'zod';
 import { ApiError } from './api/errors';
 import { useErrorText } from './api/hooks';
+import { issueField, serverIssueKey } from './form-issues';
 import { richTags } from './text';
 
 /**
@@ -85,13 +87,14 @@ export function applyServerFieldErrors<T extends FieldValues>(
   if (!(error instanceof ApiError) || error.code !== 'VALIDATION_FAILED') {
     return false;
   }
-  const matched = error.fieldIssues.filter((issue) => fields.includes(issue.path as Path<T>));
-  for (const issue of matched) {
-    form.setError(issue.path as Path<T>, {
-      message: issue.code === 'too_small' ? 'validation.required' : 'validation.invalidFormat',
-    });
+  let matched = 0;
+  for (const issue of error.fieldIssues) {
+    const field = issueField(issue.path, fields);
+    if (field === null) continue;
+    form.setError(field as Path<T>, { message: serverIssueKey(issue.code) });
+    matched += 1;
   }
-  return matched.length > 0;
+  return matched > 0;
 }
 
 /** The text for a field error key from zodIssueToKey or a schema's own key. */
@@ -170,6 +173,42 @@ export const TextField = forwardRef<HTMLInputElement, InputProps>(function TextF
     </FieldShell>
   );
 });
+
+type TextAreaProps = Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, 'id'> & {
+  label: ReactNode;
+  hint?: ReactNode;
+  error?: ReactNode;
+};
+
+/** A labelled multi-line field (descriptions); its hint and error are announced with it. */
+export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaProps>(function TextAreaField(
+  { label, hint, error, rows = 4, ...textarea },
+  ref,
+) {
+  const id = useId();
+  return (
+    <FieldShell id={id} label={label} hint={hint} error={error}>
+      {(describedBy) => (
+        <textarea
+          {...textarea}
+          ref={ref}
+          id={id}
+          rows={rows}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={describedBy}
+        />
+      )}
+    </FieldShell>
+  );
+});
+
+/**
+ * The Arabic and English fields of one value side by side (FR-LOC-03): two columns that follow the
+ * page direction (Arabic on the right in Arabic), stacked on narrow screens.
+ */
+export function FieldPair({ children }: { children: ReactNode }) {
+  return <div className="reih-field-pair">{children}</div>;
+}
 
 type SelectProps = Omit<SelectHTMLAttributes<HTMLSelectElement>, 'id'> & {
   label: ReactNode;

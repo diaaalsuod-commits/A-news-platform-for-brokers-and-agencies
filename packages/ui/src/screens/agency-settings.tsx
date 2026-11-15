@@ -13,21 +13,14 @@ import {
 } from '@reih/contracts';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
-import { type FormEvent, type ReactNode, useId, useRef, useState } from 'react';
-import { useApi, useErrorText } from '../api/hooks';
+import { type ReactNode, useState } from 'react';
+import { useApi } from '../api/hooks';
 import { useRefreshLists } from '../api/lists';
-import { ConfirmDialog } from '../dialog';
-import {
-  ApiForm,
-  FormMessage,
-  SelectField,
-  TextField,
-  useApiForm,
-  useFieldErrorText,
-} from '../forms';
+import { ApiForm, SelectField, TextField, useApiForm, useFieldErrorText } from '../forms';
 import { AuthGate, LoadState } from '../shell';
 import { Tabs } from '../tabs';
 import { Ltr, richTags } from '../text';
+import { LogoUpload } from './logo-upload';
 import { AccountsTable, InvitationsTable } from './parts';
 
 const BRANDING_PATH = '/agency/branding';
@@ -255,103 +248,18 @@ function BrandPreview(props: {
   );
 }
 
-const LOGO_TYPES = ['image/png', 'image/svg+xml'];
-
 /** FR-AGY-01: PNG or SVG up to 2 MB; the server judges the real type and sanitizes an SVG. */
 function LogoSection({ branding }: { branding: Branding }) {
-  const t = useTranslations('agencySettings.logo');
-  const api = useApi();
   const refresh = useRefreshLists();
-  const errorText = useErrorText();
-  const input = useRef<HTMLInputElement>(null);
-  const inputId = useId();
-  const [isSvg, setIsSvg] = useState(false);
-  const [pending, setPending] = useState(false);
-  const [message, setMessage] = useState<{ tone: 'error' | 'success'; text: ReactNode } | null>(
-    null,
-  );
-  const [confirmRemove, setConfirmRemove] = useState(false);
-
-  const upload = async (event: FormEvent) => {
-    event.preventDefault();
-    setMessage(null);
-    const file = input.current?.files?.[0];
-    if (!file) {
-      setMessage({ tone: 'error', text: t('choose') });
-      return;
-    }
-    if (!LOGO_TYPES.includes(file.type)) {
-      setMessage({ tone: 'error', text: t('wrongType') });
-      return;
-    }
-    if (file.size > AGENCY_LOGO_MAX_BYTES) {
-      setMessage({ tone: 'error', text: t('tooLarge') });
-      return;
-    }
-    setPending(true);
-    try {
-      const formData = new FormData();
-      formData.append(agencyLogoField, file);
-      await api.put(`${BRANDING_PATH}/logo`, { formData, schema: brandingSchema });
-      await refresh(BRANDING_PATH);
-      if (input.current) input.current.value = '';
-      setIsSvg(false);
-      setMessage({ tone: 'success', text: t('uploaded') });
-    } catch (error) {
-      setMessage({ tone: 'error', text: errorText(error) });
-    } finally {
-      setPending(false);
-    }
-  };
-
   return (
-    <section className="reih-card" aria-labelledby="logo-title">
-      <h2 id="logo-title">{t('title')}</h2>
-      {message && <FormMessage tone={message.tone}>{message.text}</FormMessage>}
-      <form className="reih-form" onSubmit={(event) => void upload(event)} noValidate>
-        <div className="reih-field">
-          <label htmlFor={inputId}>{t('file')}</label>
-          <input
-            ref={input}
-            id={inputId}
-            type="file"
-            accept="image/png,image/svg+xml"
-            aria-describedby={`${inputId}-hint${isSvg ? ` ${inputId}-svg` : ''}`}
-            onChange={(event) => setIsSvg(event.target.files?.[0]?.type === 'image/svg+xml')}
-          />
-          <p id={`${inputId}-hint`} className="reih-hint">
-            {t.rich('hint', richTags)}
-          </p>
-          {isSvg && (
-            <p id={`${inputId}-svg`} className="reih-alert" data-tone="info" role="note">
-              {t.rich('svgNote', { ...richTags, code: (chunks) => <code>{chunks}</code> })}
-            </p>
-          )}
-        </div>
-        <div className="reih-actions">
-          <button type="submit" className="reih-primary" disabled={pending} aria-busy={pending}>
-            {pending ? t('uploading') : t('upload')}
-          </button>
-          {branding.logoUrl && (
-            <button type="button" onClick={() => setConfirmRemove(true)}>
-              {t('remove')}
-            </button>
-          )}
-        </div>
-      </form>
-      <ConfirmDialog
-        open={confirmRemove}
-        onClose={() => setConfirmRemove(false)}
-        title={t('removeTitle')}
-        body={t('removeBody')}
-        confirmLabel={t('remove')}
-        danger
-        onConfirm={async () => {
-          await api.delete(`${BRANDING_PATH}/logo`, { schema: brandingSchema });
-          await refresh(BRANDING_PATH);
-        }}
-      />
-    </section>
+    <LogoUpload
+      messages="agencySettings.logo"
+      path={`${BRANDING_PATH}/logo`}
+      field={agencyLogoField}
+      maxBytes={AGENCY_LOGO_MAX_BYTES}
+      hasLogo={branding.logoUrl !== null}
+      onChanged={() => refresh(BRANDING_PATH)}
+    />
   );
 }
 

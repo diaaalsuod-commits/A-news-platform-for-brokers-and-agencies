@@ -10,8 +10,17 @@ describe('navigation by role (FR-ACC-04)', () => {
     expect(labels('broker', 'agency_admin')).toEqual(['home', 'agencySettings', 'profile']);
   });
 
-  it('FR-ACC-04 Data Operators see no admin screens; Platform Admins see all four', () => {
-    expect(labels('ops', 'data_operator')).toEqual(['home', 'profile']);
+  it('FR-ACC-04 Data Operators see their content screens and no admin screens', () => {
+    expect(labels('ops', 'data_operator')).toEqual([
+      'home',
+      'developers',
+      'salesContacts',
+      'areas',
+      'profile',
+    ]);
+  });
+
+  it('FR-ACC-04 Platform Admins see the four admin screens and no content screens', () => {
     expect(labels('ops', 'platform_admin')).toEqual([
       'home',
       'agencies',
