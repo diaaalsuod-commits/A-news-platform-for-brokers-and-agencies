@@ -25,6 +25,16 @@ test.describe.serial('data operator: developers, sales contacts, areas', () => {
     await Promise.all([operator?.context().close(), admin?.context().close()]);
   });
 
+  /**
+   * Narrows the list on screen to one name. The lists page by 20, and every run adds its own rows
+   * to the shared dev database, so a new row may land on a later page.
+   */
+  async function searchFor(text: string, apply: string = en.content.common.apply) {
+    const form = operator.getByRole('search');
+    await form.getByRole('searchbox').fill(text);
+    await form.getByRole('button', { name: apply }).click();
+  }
+
   test("FR-ACC-04 NFR-09 the content screens are the Data Operator's only", async () => {
     const nav = operator.getByRole('navigation', { name: en.nav.main });
     for (const label of [en.nav.developers, en.nav.salesContacts, en.nav.areas]) {
@@ -75,6 +85,7 @@ test.describe.serial('data operator: developers, sales contacts, areas', () => {
     await expect(operator.getByRole('button', { name: copy.archive })).toBeVisible();
 
     await operator.getByRole('link', { name: copy.back }).click();
+    await searchFor(developerName);
     await expect(operator.getByRole('row', { name: new RegExp(developerName) })).toBeVisible();
   });
 
@@ -97,6 +108,7 @@ test.describe.serial('data operator: developers, sales contacts, areas', () => {
     await dialog.getByLabel(copy.lng).fill('55.3');
     await dialog.getByRole('button', { name: copy.create.emirate }).click();
     await expect(dialog).toBeHidden();
+    await searchFor(emirateName);
     await expect(operator.getByRole('row', { name: new RegExp(emirateName) })).toBeVisible();
 
     await operator.getByRole('tab', { name: copy.tabs.community, exact: true }).click();
@@ -111,11 +123,13 @@ test.describe.serial('data operator: developers, sales contacts, areas', () => {
     await dialog.getByLabel(copy.columns.emirate).selectOption({ label: emirateName });
     await dialog.getByRole('button', { name: copy.create.community }).click();
     await expect(dialog).toBeHidden();
+    await searchFor(communityName);
     const row = operator.getByRole('row', { name: new RegExp(communityName) });
     await expect(row).toContainText(emirateName);
 
     // An emirate with a community is in use: deleting it is refused with its message.
     await operator.getByRole('tab', { name: copy.tabs.emirate, exact: true }).click();
+    await searchFor(emirateName);
     await operator
       .getByRole('row', { name: new RegExp(emirateName) })
       .getByRole('button', { name: en.content.common.delete })
@@ -146,6 +160,7 @@ test.describe.serial('data operator: developers, sales contacts, areas', () => {
     await dialog.getByLabel(copy.form.languages).fill('ar, en');
     await dialog.getByRole('button', { name: copy.create }).click();
     await expect(dialog).toBeHidden();
+    await searchFor(contactName);
     const row = operator.getByRole('row', { name: new RegExp(contactName) });
     await expect(row).toContainText(developerName);
     await expect(row).toContainText('ar, en');
@@ -169,6 +184,7 @@ test.describe.serial('data operator: developers, sales contacts, areas', () => {
         operator.getByRole('dialog').getByLabel(copy.content.common.descriptionAr),
       ).toBeVisible();
       await operator.keyboard.press('Escape');
+      await searchFor(developerName, copy.content.common.apply);
       await operator
         .getByRole('row', { name: new RegExp(developerName) })
         .getByRole('link')
@@ -181,6 +197,7 @@ test.describe.serial('data operator: developers, sales contacts, areas', () => {
       await expect(
         operator.getByRole('heading', { name: copy.content.contacts.title, level: 1 }),
       ).toBeVisible();
+      await searchFor(contactName, copy.content.common.apply);
       await operator
         .getByRole('row', { name: new RegExp(contactName) })
         .getByRole('button', { name: copy.content.common.edit })
