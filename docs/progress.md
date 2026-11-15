@@ -2,7 +2,7 @@
 
 One box per FR and NFR in docs/srs.md (SRS v3.1). When you tick an ID, update its module counter and the total.
 
-**Total: 12 / 95 done** (78 FR: 64 Must, 14 Should; 17 NFR)
+**Total: 14 / 95 done** (78 FR: 64 Must, 14 Should; 17 NFR)
 
 ## ACC: Accounts and access
 
@@ -103,20 +103,20 @@ One box per FR and NFR in docs/srs.md (SRS v3.1). When you tick an ID, update it
 
 ## LOC: Localization
 
-**0 / 4 done** (4 Must, 0 Should)
+**1 / 4 done** (4 Must, 0 Should)
 
 - [ ] FR-LOC-01 (Must) Prices in AED, converted display beside AED — rates and AED fallback done; price display pending
 - [ ] FR-LOC-02 (Must) Areas in m² or ft²
 - [ ] FR-LOC-03 (Must) Arabic and English names, with fallback
-- [ ] FR-LOC-04 (Must) UAE as the only market, every area keeps its country
+- [x] FR-LOC-04 (Must) UAE as the only market, every area keeps its country
 
 ## DAT: Content management
 
-**1 / 12 done** (10 Must, 2 Should)
+**2 / 12 done** (10 Must, 2 Should)
 
 - [ ] FR-DAT-01 (Must) Manage developers
 - [ ] FR-DAT-02 (Must) Manage sales contacts
-- [ ] FR-DAT-03 (Must) Manage emirates and communities
+- [x] FR-DAT-03 (Must) Manage emirates and communities
 - [ ] FR-DAT-04 (Must) Create and edit projects
 - [ ] FR-DAT-05 (Must) Publish only complete projects
 - [ ] FR-DAT-06 (Must) Upload media and documents with source and license note
