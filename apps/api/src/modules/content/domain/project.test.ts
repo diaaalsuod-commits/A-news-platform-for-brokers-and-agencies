@@ -138,6 +138,12 @@ describe('project rules', () => {
     expect(transitionRefusal('draft', 'archive')).toBeNull();
     expect(transitionRefusal('published', 'archive')).toBeNull();
   });
+
+  it('FR-DAT-04 only an archived project can be restored, back to draft', () => {
+    expect(transitionRefusal('archived', 'restore')).toBeNull();
+    expect(transitionRefusal('draft', 'restore')).toBe('PROJECT_NOT_ARCHIVED');
+    expect(transitionRefusal('published', 'restore')).toBe('PROJECT_NOT_ARCHIVED');
+  });
 });
 
 describe('isStale (BR-07, FR-PRJ-03, FR-DAT-10)', () => {

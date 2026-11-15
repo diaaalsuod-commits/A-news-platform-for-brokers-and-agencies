@@ -8,6 +8,7 @@ import { MediaController } from './api/media.controller.js';
 import { PaymentPlansController } from './api/payment-plans.controller.js';
 import { UnitsController } from './api/units.controller.js';
 import { ProjectsController } from './api/projects.controller.js';
+import { ReferenceController } from './api/reference.controller.js';
 import { SalesContactsController } from './api/sales-contacts.controller.js';
 import { AreaService } from './application/area.service.js';
 import { DeveloperService } from './application/developer.service.js';
@@ -18,6 +19,7 @@ import { ProjectPublishingService } from './application/project-publishing.servi
 import { ProjectService } from './application/project.service.js';
 import { ProjectReadModel } from './application/project-read-model.js';
 import { PublishGate } from './application/publish-gate.js';
+import { ReferenceOptionsService } from './application/reference-options.service.js';
 import { SalesContactReader } from './application/sales-contact-reader.js';
 import { SalesContactService } from './application/sales-contact.service.js';
 import { AreaRepository } from './infrastructure/area.repository.js';
@@ -30,8 +32,8 @@ import { ProjectRepository } from './infrastructure/project.repository.js';
 import { SalesContactRepository } from './infrastructure/sales-contact.repository.js';
 
 @Module({
-  // docs/decisions.md (P4.1, P4.2): content imports only admin (ReferenceDataReader for amenities,
-  // SettingsReader for the stale threshold). The modules that read content import it.
+  // docs/decisions.md (P4.1, P4.2, P4.4): content imports only admin (ReferenceDataReader for
+  // amenities, unit references and the form options; SettingsReader for the stale threshold). The modules that read content import it.
   imports: [DatabaseModule, FilesModule, AdminModule],
   controllers: [
     DevelopersController,
@@ -41,6 +43,7 @@ import { SalesContactRepository } from './infrastructure/sales-contact.repositor
     MediaController,
     PaymentPlansController,
     UnitsController,
+    ReferenceController,
   ],
   providers: [
     DeveloperRepository,
@@ -62,6 +65,7 @@ import { SalesContactRepository } from './infrastructure/sales-contact.repositor
     PaymentPlanService,
     UnitRepository,
     UnitService,
+    ReferenceOptionsService,
   ],
   exports: [SalesContactReader, ProjectReadModel],
 })

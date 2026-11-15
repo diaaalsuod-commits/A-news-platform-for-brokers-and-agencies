@@ -81,16 +81,23 @@ export function verificationDateIssue(date: string, now: Date): Issue | null {
   return isFutureUaeDate(date, now) ? { path: 'date', code: 'in_future' } : null;
 }
 
-/** The status changes UC-05.5 and FR-DAT-04 allow. An archived project is read-only. */
-export type ProjectTransition = 'publish' | 'unpublish' | 'archive';
+/**
+ * The status changes UC-05.5 and FR-DAT-04 allow. An archived project is read-only; restore is the
+ * only change it accepts, back to draft (P4.4, rule 6).
+ */
+export type ProjectTransition = 'publish' | 'unpublish' | 'archive' | 'restore';
 
 export type TransitionRefusal =
-  'PROJECT_ARCHIVED' | 'PROJECT_ALREADY_PUBLISHED' | 'PROJECT_NOT_PUBLISHED';
+  | 'PROJECT_ARCHIVED'
+  | 'PROJECT_ALREADY_PUBLISHED'
+  | 'PROJECT_NOT_PUBLISHED'
+  | 'PROJECT_NOT_ARCHIVED';
 
 export function transitionRefusal(
   status: PublishStatus,
   transition: ProjectTransition,
 ): TransitionRefusal | null {
+  if (transition === 'restore') return status === 'archived' ? null : 'PROJECT_NOT_ARCHIVED';
   if (status === 'archived') return 'PROJECT_ARCHIVED';
   if (transition === 'publish' && status === 'published') return 'PROJECT_ALREADY_PUBLISHED';
   if (transition === 'unpublish' && status !== 'published') return 'PROJECT_NOT_PUBLISHED';

@@ -24,4 +24,17 @@ export class ReferenceDataReader {
     const rows = await this.repository.selectable(kind, unique);
     return rows.length === unique.length;
   }
+
+  /**
+   * The named items whatever their state, so a record shows the names it already has (FR-DAT-04,
+   * FR-DAT-08). isActive here means "new selections may offer it": false for a deactivated item
+   * and for an amenity of a deactivated category. Unknown ids are left out.
+   */
+  async findByIds(kind: ReferenceKind, ids: readonly string[]): Promise<ReferenceItem[]> {
+    const rows = await this.repository.byIds(kind, [...new Set(ids)]);
+    return rows.map(({ row, selectable }) => ({
+      ...toReferenceItem(kind, row),
+      isActive: selectable,
+    }));
+  }
 }

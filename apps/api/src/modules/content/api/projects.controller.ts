@@ -126,4 +126,15 @@ export class ProjectsController {
     await this.publishing.archive(projectId, user.id);
     return this.projects.get(projectId);
   }
+
+  /** FR-DAT-04: archived back to draft; 409 PROJECT_NOT_ARCHIVED for any other status. */
+  @Post(':id/restore')
+  @HttpCode(HttpStatus.OK)
+  async restore(
+    @Param('id', id) projectId: string,
+    @CurrentUser() user: RequestUser,
+  ): Promise<Project> {
+    await this.publishing.restore(projectId, user.id);
+    return this.projects.get(projectId);
+  }
 }

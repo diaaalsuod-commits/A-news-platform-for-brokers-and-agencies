@@ -9,7 +9,7 @@ const ID = randomUUID();
 
 /**
  * Every Data Operator endpoint: P4.1 (FR-DAT-01 to FR-DAT-03), P4.2 (FR-DAT-04 to FR-DAT-06,
- * FR-DAT-10) and P4.3 (FR-DAT-07 to FR-DAT-09).
+ * FR-DAT-10), P4.3 (FR-DAT-07 to FR-DAT-09) and P4.4 part b (reference options, restore).
  */
 const ENDPOINTS: [Method, string][] = [
   ['get', '/content/developers'],
@@ -56,6 +56,9 @@ const ENDPOINTS: [Method, string][] = [
   ['get', `/content/projects/${ID}/units/${ID}`],
   ['patch', `/content/projects/${ID}/units/${ID}`],
   ['delete', `/content/projects/${ID}/units/${ID}`],
+  // P4.4 part b (FR-DAT-04, FR-ADM-04)
+  ['get', '/content/reference/amenities'],
+  ['post', `/content/projects/${ID}/restore`],
 ];
 
 const OTHER_ROLES: UserRole[] = ['platform_admin', 'agency_admin', 'broker'];
@@ -76,8 +79,8 @@ describe('Data Operator content endpoints: access (FR-ACC-04, NFR-09)', () => {
   const call = (method: Method, path: string, session?: string) =>
     method === 'get' ? h.get(path, session) : h.send(method, path, { session, body: {} });
 
-  it('covers all 42 endpoints', () => {
-    expect(ENDPOINTS).toHaveLength(42);
+  it('covers all 44 endpoints', () => {
+    expect(ENDPOINTS).toHaveLength(44);
   });
 
   describe.each(OTHER_ROLES)('FR-ACC-04 %s', (role) => {

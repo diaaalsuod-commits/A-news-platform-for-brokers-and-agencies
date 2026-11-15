@@ -54,6 +54,7 @@
     "PROJECT_ALREADY_PUBLISHED": "This project is already published.",
     "PROJECT_NOT_PUBLISHED": "This project is not published.",
     "PROJECT_ARCHIVED": "This project is archived and can no longer be changed.",
+    "PROJECT_NOT_ARCHIVED": "Only an archived project can be restored.",
     "DEFAULT_PLAN_REQUIRED": "This plan is the project's default. Make another plan the default before deleting it.",
     "UNIT_NUMBER_TAKEN": "Another unit of this project already has this unit number.",
     "UNIT_IN_USE": "This unit cannot be deleted: its project has been published or its price and status history exists. Change its status instead."

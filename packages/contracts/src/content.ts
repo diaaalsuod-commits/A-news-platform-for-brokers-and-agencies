@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { emailSchema, phoneSchema } from './account.js';
+import { referenceItemSchema } from './admin.js';
 import { httpsUrlSchema } from './agency.js';
 import {
   areaLevelSchema,
@@ -371,6 +372,42 @@ export const verifyProjectRequestSchema = z
   })
   .strict();
 export type VerifyProjectRequest = z.infer<typeof verifyProjectRequestSchema>;
+
+// ---------------------------------------------------------------- reference options (FR-DAT-04, FR-DAT-08, FR-ADM-04)
+
+/** At most this many ids in ?include, so the whole list stays small. */
+export const REFERENCE_INCLUDE_MAX = 100;
+
+/**
+ * GET /content/reference/:kind. include names items already on a record (a project's amenities, a
+ * unit's property type), so they show their names even when they can no longer be chosen. A
+ * comma-separated list of ids; a malformed id, more than 100 ids or a repeated parameter is a 400.
+ */
+export const contentReferenceQuerySchema = z
+  .object({
+    include: z
+      .string()
+      .max(REFERENCE_INCLUDE_MAX * 37)
+      .transform((value) => value.split(','))
+      .pipe(z.array(z.uuid()).min(1).max(REFERENCE_INCLUDE_MAX))
+      .optional(),
+  })
+  .strict();
+export type ContentReferenceQuery = z.infer<typeof contentReferenceQuerySchema>;
+
+/**
+ * The options of one kind of reference data for the Data Operator's forms. Not paged, an exception
+ * to the list rule (docs/decisions.md, P4.4 part b): these are small dictionaries the Platform Admin
+ * keeps, so the list is every item new selections may offer plus at most 100 included ones.
+ *
+ * Here isActive means "can be chosen for new selections" (FR-ADM-04), not the item's own flag: an
+ * included item that is deactivated is false, and so is an amenity that is active itself but whose
+ * category is deactivated. Every item listed without include is true.
+ */
+export const contentReferenceListResponseSchema = z.object({
+  items: z.array(referenceItemSchema),
+});
+export type ContentReferenceListResponse = z.infer<typeof contentReferenceListResponseSchema>;
 
 // ---------------------------------------------------------------- media (FR-DAT-06, BR-14)
 

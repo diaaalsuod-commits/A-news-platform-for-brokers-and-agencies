@@ -4,7 +4,7 @@ import { and, asc, count, eq, ilike, inArray, or, type SQL } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import type { PgColumn, PgTable } from 'drizzle-orm/pg-core';
 import { containsPattern, DATABASE } from '../../../shared/database/index.js';
-import { REFERENCE_KINDS } from '../domain/reference-kinds.js';
+import { isSelectable, REFERENCE_KINDS } from '../domain/reference-kinds.js';
 import {
   amenities,
   amenityCategories,
@@ -207,5 +207,38 @@ export class ReferenceDataRepository {
       .where(and(eq(column('isActive'), true), byId))
       .orderBy(...order);
     return rows.map(toRow);
+  }
+
+  /**
+   * The named items in any state, for names already on a record. selectable is false when the
+   * item, or an amenity's category, is deactivated (FR-ADM-04). Unknown ids are left out.
+   */
+  async byIds(
+    kind: ReferenceKind,
+    ids: readonly string[],
+  ): Promise<{ row: ReferenceRow; selectable: boolean }[]> {
+    if (ids.length === 0) return [];
+    const { table, selection, column } = columnsOf(kind);
+    if (kind === 'amenities') {
+      const rows = await this.db
+        .select({ ...selection, categoryActive: amenityCategories.isActive })
+        .from(amenities)
+        .innerJoin(amenityCategories, eq(amenityCategories.id, amenities.categoryId))
+        .where(inArray(amenities.id, [...ids]))
+        .orderBy(asc(amenities.id));
+      return rows.map((row) => {
+        const item = toRow(row);
+        return { row: item, selectable: isSelectable(item, { isActive: row.categoryActive }) };
+      });
+    }
+    const rows = await this.db
+      .select(selection)
+      .from(table)
+      .where(inArray(column('id'), [...ids]))
+      .orderBy(asc(column('id')));
+    return rows.map((row) => {
+      const item = toRow(row);
+      return { row: item, selectable: isSelectable(item) };
+    });
   }
 }

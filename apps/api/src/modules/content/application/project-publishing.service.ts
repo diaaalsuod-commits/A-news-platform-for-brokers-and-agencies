@@ -67,6 +67,17 @@ export class ProjectPublishingService {
   }
 
   /**
+   * FR-DAT-04 (P4.4, rule 6): an archived project back to draft, editable again. published_at is
+   * kept, so the unit delete rule still treats it as once published. No event: a draft is never
+   * visible to brokers or catalogs, and CLAUDE.md lists exactly four events.
+   */
+  async restore(id: string, userId: string): Promise<void> {
+    await this.transition(id, 'restore', async (tx) => {
+      await this.projects.setStatus(tx, id, 'draft', userId, new Date());
+    });
+  }
+
+  /**
    * FR-DAT-10: records a verification on a UAE calendar day, today or earlier, and moves the
    * project's last verification to it at once unless a later one is recorded (00:00 UAE time).
    */
